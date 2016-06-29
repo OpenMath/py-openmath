@@ -1,0 +1,1 @@
+""" Code used to encode an OpenMath object into XML. """
