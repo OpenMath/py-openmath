@@ -1,4 +1,4 @@
-
+""" Contains a Data-structure for OpenMath and related objects. """
 
 class OMAny(object):
     """ Class for all OpenMath related objects. """
@@ -152,6 +152,7 @@ class OMAttribution(OMCompoundElement, CompoundAttributes):
         self.pairs = pairs
         self.A = A
 
+
 class OMAttributionPairs(OMAny, CompoundAttributes):
     """ List of Attribution pairs. """
 
@@ -168,6 +169,7 @@ class OMBinding(OMCompoundElement, CompoundAttributes):
         self.B = B
         self.vars = vars
         self.C = C
+
 
 class OMVar(OMAny):
     """ Represents a Variable or Attributed Variable. """
@@ -208,3 +210,11 @@ class OMError(OMCompoundElement, CompoundAttributes):
         super(OMError, self).__init__(id, cdbase)
         self.name = name
         self.params = params
+
+__all__ = ["OMAny", "CDBaseAttribute", "CommonAttributes",
+           "CompoundAttributes", "OMAnyVal", "OMObject", "OMExpression",
+           "OMReference", "OMBasicElement", "OMInteger", "OMFloat", "OMString",
+           "OMBytes", "OMSymbol", "OMVariable", "OMDerivedElement",
+           "OMForeign", "OMCompoundElement", "OMApplication", "OMAttribution",
+           "OMAttributionPairs", "OMBinding", "OMVar", "OMVarVar", "OMAttVar",
+           "OMBindVariables", "OMError"]
