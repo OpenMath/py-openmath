@@ -1,13 +1,14 @@
 """ Contains a Data-structure for OpenMath and related objects. """
+from case_class import AbstractCaseClass
 
 
-class OMAny(object):
+class OMAny(AbstractCaseClass):
     """ Class for all OpenMath related objects. """
 
     pass
 
 
-class CDBaseAttribute(OMAny):
+class CDBaseAttribute(OMAny, AbstractCaseClass):
     """ Mixin for OpenMath Objects with a cdbase attribute. """
 
     def __init__(self, cdbase):
@@ -18,7 +19,7 @@ class CDBaseAttribute(OMAny):
         """
 
         # TODO: Think about using a URI class
-        self.__cdbase = str(cdbase)
+        self.__cdbase = str(cdbase) if cdbase is not None else None
 
     @property
     def cdbase(self):
@@ -30,17 +31,17 @@ class CDBaseAttribute(OMAny):
         return self.__cdbase
 
 
-class CommonAttributes(OMAny):
+class CommonAttributes(OMAny, AbstractCaseClass):
     """ Mixin for OpenMath Objects with common attributes. """
 
-    def __init__(self, id):
+    def __init__(self, id=None):
         """ Creates a new CommonAttributes() instance.
 
         :param id: Identifier to use for Structure sharing.
         :type id: str
         """
 
-        self.__id = str(id)
+        self.__id = str(id) if id is not None else None
 
     @property
     def id(self):
@@ -52,7 +53,7 @@ class CommonAttributes(OMAny):
         return self.__id
 
 
-class CompoundAttributes(OMAny, CommonAttributes, CDBaseAttribute):
+class CompoundAttributes(CommonAttributes, CDBaseAttribute, AbstractCaseClass):
     """ Mixin for OpenMath objects with compound attributes. """
 
     def __init__(self, id=None, cdbase=None):
@@ -69,7 +70,7 @@ class CompoundAttributes(OMAny, CommonAttributes, CDBaseAttribute):
         CDBaseAttribute.__init__(self, cdbase)
 
 
-class OMAnyVal(OMAny):
+class OMAnyVal(OMAny, AbstractCaseClass):
     """ Shared Class for OpenMath Expressions + OpenMath Derived Objects. """
 
     pass
@@ -118,7 +119,7 @@ class OMObject(OMAnyVal, CompoundAttributes):
         return self.__version
 
 
-class OMExpression(OMAnyVal):
+class OMExpression(OMAnyVal, AbstractCaseClass):
     """ Base class for all OpenMath Expressions (i.e. proper objects
     according to the specification). """
 
@@ -153,7 +154,7 @@ class OMReference(OMExpression, CommonAttributes):
         return self.__href
 
 
-class OMBasicElement(OMReference):
+class OMBasicElement(OMReference, AbstractCaseClass):
     """ Basic OpenMath objects (section 2.1.1). """
     pass
 
@@ -161,7 +162,7 @@ class OMBasicElement(OMReference):
 class OMInteger(OMBasicElement, CommonAttributes):
     """ An OpenMath integer. """
 
-    def __init__(self, integer, id):
+    def __init__(self, integer, id=None):
         """ Creates a new OMInteger() instance.
 
         :param integer: Integer wrapped by this OMInteger() instance.
@@ -335,7 +336,7 @@ class OMVariable(OMBasicElement, CommonAttributes):
         return self.__name
 
 
-class OMDerivedElement(OMAnyVal):
+class OMDerivedElement(OMAnyVal, AbstractCaseClass):
     """ Derived OpenMath objects (section 2.1.2). """
 
     pass
@@ -383,7 +384,7 @@ class OMForeign(OMDerivedElement, CompoundAttributes):
         return self.__encoding
 
 
-class OMCompoundElement(OMExpression):
+class OMCompoundElement(OMExpression, AbstractCaseClass):
     """ Compound OpenMath objects (section 2.1.3). """
     pass
 
@@ -471,7 +472,8 @@ class OMAttribution(OMCompoundElement, CompoundAttributes):
 
         return self.__obj
 
-class OMAttributionPairs(OMAny, CompoundAttributes):
+
+class OMAttributionPairs(CompoundAttributes):
     """ List of Attribution pairs. """
 
     def __init__(self, pairs, id=None, cdbase=None):
@@ -597,7 +599,7 @@ class OMAttVar(CommonAttributes):
         return self.__obj
 
 
-class OMBindVariables(OMAny, CommonAttributes):
+class OMBindVariables(CommonAttributes):
     """ List of OpenMath bound variables. """
 
     def __init__(self, vars, id):
@@ -672,5 +674,5 @@ __all__ = ["OMAny", "CDBaseAttribute", "CommonAttributes",
            "OMReference", "OMBasicElement", "OMInteger", "OMFloat", "OMString",
            "OMBytes", "OMSymbol", "OMVariable", "OMDerivedElement",
            "OMForeign", "OMCompoundElement", "OMApplication", "OMAttribution",
-           "OMAttributionPairs", "OMBinding", "OMVar", "OMVarVar", "OMAttVar",
+           "OMAttributionPairs", "OMBinding", "OMAttVar",
            "OMBindVariables", "OMError"]
