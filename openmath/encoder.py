@@ -2,7 +2,8 @@
 import base64
 
 from lxml import etree
-from openmath.openmath import *
+
+from openmath import openmath as om
 
 # Setup the OpenMath Namespace
 # TODO: Find a better way to make the namespace.
@@ -97,66 +98,93 @@ def encode_xml(obj):
     :rtype: etree._Element
     """
 
+    name = ""
+    attr = {}
+    children = []
+
+    if isinstance(obj, om.CDBaseAttribute):
+        attr["cdbase"] = obj.cdbase
+
+    if isinstance(obj, om.CommonAttributes):
+        attr["id"] = obj.id
+
     # Wrapper object
-    if isinstance(obj, OMObject):
-        return _make_element(_om("OMOBJ"), encode_xml(obj.omel), version=obj.version, id=obj.id, cdbase=obj.cdbase)
+    if isinstance(obj, om.OMObject):
+        name = "OMOBJ"
+        children.append(encode_xml(obj.omel))
+        attr["version"] = obj.version
 
     # Derived Objects
-    elif isinstance(obj, OMReference):
-        return _make_element(_om("OMR"), href=obj.href, id=obj.id)
+    elif isinstance(obj, om.OMReference):
+        name = "OMR"
+        attr["href"] = obj.href
 
     # Basic Objects
-    elif isinstance(obj, OMInteger):
-        return _make_element(_om("OMI"), id=obj.id, **{"": obj.integer})
-    elif isinstance(obj, OMFloat):
-        return _make_element(_om("OMF"), dec={obj.float}, id=obj.id)
-    elif isinstance(obj, OMString):
-        return _make_element(_om("OMSTR"), id=obj.id, **{"": obj.string})
-    elif isinstance(obj, OMBytes):
-        return _make_element(_om("OMB"), id=obj.id,
-                             **{"": base64.b64encode(obj.bytes).encode(ascii)})
-    elif isinstance(obj, OMSymbol):
-        return _make_element(_om("OMS"), id=obj.id, name=obj.name, cd=obj.cd,
-                             cdbase=obj.cdbase)
-    elif isinstance(obj, OMVariable):
-        return _make_element(_om("OMV"), id=obj.id, name=obj.name)
+    elif isinstance(obj, om.OMInteger):
+        name = "OMI"
+        attr[""] = obj.integer
+    elif isinstance(obj, om.OMFloat):
+        name = "OMF"
+        attr["dec"] = obj.double
+    elif isinstance(obj, om.OMString):
+        name = "OMSTR"
+        attr[""] = obj.string
+    elif isinstance(obj, om.OMBytes):
+        name = "OMB"
+        attr[""] = base64.b64encode(obj.bytes).encode(ascii)
+    elif isinstance(obj, om.OMSymbol):
+        name = "OMS"
+        attr["name"] = obj.name
+        attr["cd"] = obj.cd
+    elif isinstance(obj, om.OMVariable):
+        name = "OMV"
+        attr["name"] = name
 
     # Derived Elements
-    elif isinstance(obj, OMForeign):
-        return _make_element(_om("OMFOREIGN"), id=obj.id, cdbase=obj.cdbase,
-                             encoding=obj.encoding, **{"":obj.obj})
+    elif isinstance(obj, om.OMForeign):
+        name = "OMFOREIGN"
+        attr["encoding"] = obj.encoding
+        attr[""] = obj.obj
 
     # Compound Elements
-    elif isinstance(obj, OMApplication):
-        children = list(map(encode_xml, obj.arguments))
-        return _make_element(_om("OMA"), encode_xml(obj.elem), *children,
-                             id=obj.id, cdbase=obj.cdbase)
-    elif isinstance(obj, OMAttribution):
-        return _make_element(_om("OMATTR"), encode_xml(obj.pairs),
-                             encode_xml(obj.obj), id=obj.id, cdbase=obj.cdbase)
-    elif isinstance(obj, OMAttributionPairs):
-        pairs = []
+    elif isinstance(obj, om.OMApplication):
+        name = "OMA"
+        children = [encode_xml(obj.elem)]
+        children.extend(map(encode_xml, obj.arguments))
+    elif isinstance(obj, om.OMAttribution):
+        name = "OMATTR"
+        children = [encode_xml(obj.pairs), encode_xml(obj.obj)]
+
+    elif isinstance(obj, om.OMAttributionPairs):
+        name = "OMATP"
+        children = []
 
         for (k, v) in obj.pairs:
-            pairs.append(encode_xml(k))
-            pairs.append(encode_xml(v))
+            children.append(encode_xml(k))
+            children.append(encode_xml(v))
 
-        return _make_element(_om("OMATP"), *pairs, id=obj.id)
-    elif isinstance(obj, OMBinding):
-        return _make_element(_om("OMBIND"), encode_xml(obj.binder),
-                             encode_xml(obj.vars),
-                             encode_xml(obj.obj))
-    elif isinstance(obj, OMBindVariables):
-        vars = list(map(encode_xml, obj.vars))
-        return _make_element(_om("OMBVAR"), *vars, id=obj.id)
-    elif isinstance(obj, OMAttVar):
-        return _make_element(_om("OMATTR"), encode_xml(obj.pairs),
-                             encode_xml(obj.obj), id=obj.id)
-    elif isinstance(obj, OMError):
-        params = list(map(encode_xml, obj.params))
-        return _make_element(_om("OME"), encode_xml(obj.name), *params,
-                             id=obj.id, cdbase=obj.cdbase)
+    elif isinstance(obj, om.OMBinding):
+        name = "OMBIND"
+        children = [
+            encode_xml(obj.binder),
+            encode_xml(obj.vars),
+            encode_xml(obj.obj)
+        ]
+    elif isinstance(obj, om.OMBindVariables):
+        name = "OMBVAR"
+        children = list(map(encode_xml, obj.vars))
+    elif isinstance(obj, om.OMAttVar):
+        name = "OMATTR"
+        children = [encode_xml(obj.pairs), encode_xml(obj.obj)]
+    elif isinstance(obj, om.OMError):
+        name = "OME"
+        children = [encode_xml(obj.name)]
+        children.extend(map(encode_xml, obj.params))
+        
     else:
         raise TypeError("Expected obj to be of type OMAny. ")
 
+    return _make_element(_om(name), *children, **attr)
+
 __all__ = ["encode_xml"]
+
