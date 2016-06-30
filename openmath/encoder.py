@@ -3,12 +3,11 @@ import base64
 
 from lxml import etree
 
-from openmath import openmath as om
+from openmath import openmath as om, xml
 
 # Setup the OpenMath Namespace
 # TODO: Find a better way to make the namespace.
-openmath_ns = "http://www.openmath.org/OpenMath"
-etree.register_namespace("om", openmath_ns)
+etree.register_namespace("om", xml.openmath_ns)
 
 def _om(t):
     """ Turns a tag into a tag with the OpenMath namespace.
@@ -19,7 +18,7 @@ def _om(t):
     :rtype: str
     """
 
-    return "{%s}%s" % (openmath_ns, t)
+    return "{%s}%s" % (xml.openmath_ns, t)
 
 
 def _make_element(tag, *children, **attributes):
@@ -182,7 +181,7 @@ def encode_xml(obj):
         children.extend(map(encode_xml, obj.params))
         
     else:
-        raise TypeError("Expected obj to be of type OMAny. ")
+        raise TypeError("Expected obj to be of type OMAny, found %s." % obj.__class__.__name__)
 
     return _make_element(_om(name), *children, **attr)
 

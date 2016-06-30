@@ -154,7 +154,7 @@ class OMReference(OMExpression, CommonAttributes):
         return self.__href
 
 
-class OMBasicElement(OMReference, AbstractCaseClass):
+class OMBasicElement(OMAny, AbstractCaseClass):
     """ Basic OpenMath objects (section 2.1.1). """
     pass
 
@@ -422,6 +422,7 @@ class OMApplication(OMCompoundElement, CompoundAttributes):
 
         return self.__elem
 
+    @property
     def arguments(self):
         """ Returns the list of arguments that are being applied.
 

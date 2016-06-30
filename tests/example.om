@@ -1,0 +1,40 @@
+<om:OMOBJ xmlns:om="http://www.openmath.org/OpenMath" version="2.0">
+  <om:OMATTR>
+    <om:OMATP>
+      <om:OMS name="call_id" cd="scscp1"/>
+      <om:OMSTR>symcomp.org:26133:18668:s2sYf1pg</om:OMSTR>
+      <om:OMS name="option_runtime" cd="scscp1"/>
+      <om:OMI>300000</om:OMI>
+      <om:OMS name="option_min_memory" cd="scscp1"/>
+      <om:OMI>40964</om:OMI>
+      <om:OMS name="option_max_memory" cd="scscp1"/>
+      <om:OMI>134217728</om:OMI>
+      <om:OMS name="option_debuglevel" cd="scscp1"/>
+      <om:OMI>2</om:OMI>
+      <om:OMS name="option_return_object" cd="scscp1"/>
+      <om:OMSTR/>
+    </om:OMATP>
+    <om:OMA>
+      <om:OMS name="procedure_call" cd="scscp1"/>
+      <om:OMA>
+        <om:OMS name="GroupIdentificationService" cd="scscp_transient_1"/>
+        <om:OMA>
+          <om:OMS name="group" cd="group1"/>
+          <om:OMA>
+            <om:OMS name="permutation" cd="permut1"/>
+            <om:OMI>2</om:OMI>
+            <om:OMI>3</om:OMI>
+            <om:OMI>1</om:OMI>
+          </om:OMA>
+          <om:OMA>
+            <om:OMS name="permutation" cd="permut1"/>
+            <om:OMI>1</om:OMI>
+            <om:OMI>2</om:OMI>
+            <om:OMI>4</om:OMI>
+            <om:OMI>3</om:OMI>
+          </om:OMA>
+        </om:OMA>
+      </om:OMA>
+    </om:OMA>
+  </om:OMATTR>
+</om:OMOBJ>
