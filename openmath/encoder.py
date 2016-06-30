@@ -133,7 +133,7 @@ def encode_xml(obj):
                              id=obj.id, cdbase=obj.cdbase)
     elif isinstance(obj, OMAttribution):
         return _make_element(_om("OMATTR"), encode_xml(obj.pairs),
-                             encode_xml(obj.obj))
+                             encode_xml(obj.obj), id=obj.id, cdbase=obj.cdbase)
     elif isinstance(obj, OMAttributionPairs):
         pairs = []
 
@@ -149,8 +149,6 @@ def encode_xml(obj):
     elif isinstance(obj, OMBindVariables):
         vars = list(map(encode_xml, obj.vars))
         return _make_element(_om("OMBVAR"), *vars, id=obj.id)
-    elif isinstance(obj, OMVarVar):
-        return encode_xml(obj.variable)
     elif isinstance(obj, OMAttVar):
         return _make_element(_om("OMATTR"), encode_xml(obj.pairs),
                              encode_xml(obj.obj), id=obj.id)

@@ -557,35 +557,7 @@ class OMBinding(OMCompoundElement, CompoundAttributes):
         return self.__obj
 
 
-class OMVar(OMAny):
-    """ Represents a Variable or Attributed Variable. """
-
-    pass
-
-
-class OMVarVar(OMVar):
-    """ Wraps a single bound Variable. """
-
-    def __init__(self, variable):
-        """ Creates a new OMVarVar() instance.
-
-        :param variable: Variable that is wrapped by this OMVarVar instance.
-        :type variable: OMVariable
-        """
-
-        self.__variable = variable
-
-    @property
-    def variable(self):
-        """ Returns the Variable that is wrapped by this OMVarVar instance.
-
-        :rtype: OMVariable
-        """
-
-        return self.__variable
-
-
-class OMAttVar(OMVar, CommonAttributes):
+class OMAttVar(CommonAttributes):
     """ Represents an attributed variable. """
 
     def __init__(self, pairs, obj, id=None):
@@ -631,7 +603,7 @@ class OMBindVariables(OMAny, CommonAttributes):
     def __init__(self, vars, id):
         """ Creates a new OMBindVariables() instance.
 
-        :param vars: List of OMVar instances.
+        :param vars: List of OMVariable or OMAttVar instances.
         :type vars: list
 
         :param id: Identifier to use for Structure sharing.
