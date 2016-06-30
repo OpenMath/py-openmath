@@ -107,9 +107,9 @@ def encode_xml(obj):
 
     # Basic Objects
     elif isinstance(obj, OMInteger):
-        return _make_element(_om("OMI"), id=obj.id, **{"": obj.val})
+        return _make_element(_om("OMI"), id=obj.id, **{"": obj.integer})
     elif isinstance(obj, OMFloat):
-        return _make_element(_om("OMF"), dec={obj.val}, id=obj.id)
+        return _make_element(_om("OMF"), dec={obj.float}, id=obj.id)
     elif isinstance(obj, OMString):
         return _make_element(_om("OMSTR"), id=obj.id, **{"": obj.string})
     elif isinstance(obj, OMBytes):
@@ -133,7 +133,7 @@ def encode_xml(obj):
                              id=obj.id, cdbase=obj.cdbase)
     elif isinstance(obj, OMAttribution):
         return _make_element(_om("OMATTR"), encode_xml(obj.pairs),
-                             encode_xml(obj.A))
+                             encode_xml(obj.obj))
     elif isinstance(obj, OMAttributionPairs):
         pairs = []
 
@@ -143,17 +143,17 @@ def encode_xml(obj):
 
         return _make_element(_om("OMATP"), *pairs, id=obj.id)
     elif isinstance(obj, OMBinding):
-        return _make_element(_om("OMBIND"), encode_xml(obj.B),
+        return _make_element(_om("OMBIND"), encode_xml(obj.binder),
                              encode_xml(obj.vars),
-                             encode_xml(obj.C))
+                             encode_xml(obj.obj))
     elif isinstance(obj, OMBindVariables):
         vars = list(map(encode_xml, obj.vars))
         return _make_element(_om("OMBVAR"), *vars, id=obj.id)
     elif isinstance(obj, OMVarVar):
-        return encode_xml(obj.omv)
+        return encode_xml(obj.variable)
     elif isinstance(obj, OMAttVar):
         return _make_element(_om("OMATTR"), encode_xml(obj.pairs),
-                             encode_xml(obj.A), id=obj.id)
+                             encode_xml(obj.obj), id=obj.id)
     elif isinstance(obj, OMError):
         params = list(map(encode_xml, obj.params))
         return _make_element(_om("OME"), encode_xml(obj.name), *params,
