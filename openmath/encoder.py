@@ -103,13 +103,13 @@ def encode_xml(obj):
 
     # Derived Objects
     elif isinstance(obj, OMReference):
-        return _make_element(_om("OMR"), href=str(obj.href), id=obj.id)
+        return _make_element(_om("OMR"), href=obj.href, id=obj.id)
 
     # Basic Objects
     elif isinstance(obj, OMInteger):
-        return _make_element(_om("OMI"), id=obj.id, **{"": str(obj.val)})
+        return _make_element(_om("OMI"), id=obj.id, **{"": obj.val})
     elif isinstance(obj, OMFloat):
-        return _make_element(_om("OMF"), dec={str(obj.val)}, id=obj.id)
+        return _make_element(_om("OMF"), dec={obj.val}, id=obj.id)
     elif isinstance(obj, OMString):
         return _make_element(_om("OMSTR"), id=obj.id, **{"": obj.string})
     elif isinstance(obj, OMBytes):
@@ -123,13 +123,41 @@ def encode_xml(obj):
 
     # Derived Elements
     elif isinstance(obj, OMForeign):
-        return _make_element("OMFOREIGN", id=obj.id, cdbase=obj.cdbase,
-                             encoding=str(obj.encoding), **{"":str(obj.obj)})
+        return _make_element(_om("OMFOREIGN"), id=obj.id, cdbase=obj.cdbase,
+                             encoding=obj.encoding, **{"":obj.obj})
 
-    # TODO: Compound Elements
+    # Compound Elements
+    elif isinstance(obj, OMApplication):
+        children = list(map(encode_xml, obj.arguments))
+        return _make_element(_om("OMA"), encode_xml(obj.elem), *children,
+                             id=obj.id, cdbase=obj.cdbase)
+    elif isinstance(obj, OMAttribution):
+        return _make_element(_om("OMATTR"), encode_xml(obj.pairs),
+                             encode_xml(obj.A))
+    elif isinstance(obj, OMAttributionPairs):
+        pairs = []
 
-    elif not isinstance(obj, OMAny):
-        raise NotImplementedError
+        for (k, v) in obj.pairs:
+            pairs.append(encode_xml(k))
+            pairs.append(encode_xml(v))
+
+        return _make_element(_om("OMATP"), *pairs, id=obj.id)
+    elif isinstance(obj, OMBinding):
+        return _make_element(_om("OMBIND"), encode_xml(obj.B),
+                             encode_xml(obj.vars),
+                             encode_xml(obj.C))
+    elif isinstance(obj, OMBindVariables):
+        vars = list(map(encode_xml, obj.vars))
+        return _make_element(_om("OMBVAR"), *vars, id=obj.id)
+    elif isinstance(obj, OMVarVar):
+        return encode_xml(obj.omv)
+    elif isinstance(obj, OMAttVar):
+        return _make_element(_om("OMATTR"), encode_xml(obj.pairs),
+                             encode_xml(obj.A), id=obj.id)
+    elif isinstance(obj, OMError):
+        params = list(map(encode_xml, obj.params))
+        return _make_element(_om("OME"), encode_xml(obj.name), *params,
+                             id=obj.id, cdbase=obj.cdbase)
     else:
         raise TypeError("Expected obj to be of type OMAny. ")
 
