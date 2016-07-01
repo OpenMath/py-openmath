@@ -1,4 +1,5 @@
 import unittest
+import os.path
 
 from lxml import etree
 from tests.utils import expected
@@ -11,7 +12,7 @@ class TestDecoder(unittest.TestCase):
         """ Tests the decoder based on an example. """
 
         # try to parse the xml
-        with open("example.om") as f:
+        with open(os.path.join(os.path.dirname(__file__), 'example.om')) as f:
             xmlnode = etree.fromstring(f.read())
 
         omnode = decode_xml(xmlnode)

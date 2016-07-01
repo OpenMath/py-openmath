@@ -1,4 +1,5 @@
 import unittest
+import os.path
 
 from lxml import etree
 
@@ -12,7 +13,7 @@ class TestEncoder(unittest.TestCase):
     def test_example(self):
         """ Tests the encoder based on an example. """
 
-        with open("example.om") as f:
+        with open(os.path.join(os.path.dirname(__file__), 'example.om')) as f:
             xmlnode = etree.fromstring(f.read())
 
         encoded = encode_xml(expected)
