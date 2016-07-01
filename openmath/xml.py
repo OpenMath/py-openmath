@@ -17,7 +17,6 @@ omtags = {
     "OMATP": om.OMAttributionPairs,
     "OMBIND": om.OMBinding,
     "OMBVAR": om.OMBindVariables,
-    "OMATTR": om.OMAttVar,
     "OME": om.OMError
     }
 inv_omtags = {(v,k) for k,v in omtags.items()}

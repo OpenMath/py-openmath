@@ -1,2 +1,2 @@
 lxml==3.6.0
-case_class==0.0.5
+case_class==0.0.7

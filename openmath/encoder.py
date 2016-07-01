@@ -130,14 +130,16 @@ def encode_xml(obj):
         attr[""] = obj.string
     elif isinstance(obj, om.OMBytes):
         name = "OMB"
-        attr[""] = base64.b64encode(obj.bytes).encode(ascii)
+        pybytes = bytes(''.join([chr(b) for b in obj.bytes]), 'utf-8')
+
+        attr[""] = base64.b64encode(pybytes)
     elif isinstance(obj, om.OMSymbol):
         name = "OMS"
         attr["name"] = obj.name
         attr["cd"] = obj.cd
     elif isinstance(obj, om.OMVariable):
         name = "OMV"
-        attr["name"] = name
+        attr["name"] = obj.name
 
     # Derived Elements
     elif isinstance(obj, om.OMForeign):
@@ -179,11 +181,23 @@ def encode_xml(obj):
         name = "OME"
         children = [encode_xml(obj.name)]
         children.extend(map(encode_xml, obj.params))
-        
     else:
         raise TypeError("Expected obj to be of type OMAny, found %s." % obj.__class__.__name__)
 
     return _make_element(_om(name), *children, **attr)
+
+
+def encode_stream(obj):
+    """ Encodes an OpenMath element into a string.
+
+    :param obj: Object to encode as string.
+    :type obj: OMAny
+
+    :rtype: str
+    """
+
+    node = encode_xml(obj)
+    return etree.tostring(node)
 
 __all__ = ["encode_xml"]
 

@@ -363,7 +363,7 @@ class OMForeign(OMDerivedElement, CompoundAttributes):
         super(OMForeign, self).__init__(id, cdbase)
 
         self.__obj = obj
-        self.__encoding = str(encoding)
+        self.__encoding = str(encoding) if encoding is not None else None
 
     @property
     def obj(self):
@@ -603,7 +603,7 @@ class OMAttVar(CommonAttributes):
 class OMBindVariables(CommonAttributes):
     """ List of OpenMath bound variables. """
 
-    def __init__(self, vars, id):
+    def __init__(self, vars, id=None):
         """ Creates a new OMBindVariables() instance.
 
         :param vars: List of OMVariable or OMAttVar instances.

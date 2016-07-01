@@ -3,10 +3,22 @@
 from lxml import etree
 from pkg_resources import resource_filename
 from openmath import openmath as om, xml
+import base64
 
-def decode_xml(stream, validator=None):
+
+def decode_stream(stream, validator=None):
+    """ Decodes a stream into an OpenMath object.
+
+    :param stream: Stream to decode.
+    :type stream: Any
+
+    :param validator: Validator to use.
+
+    :rtype: OMAny
     """
-    """
+
+    # TODO: Complete the docstring above
+
     
     tree = etree.parse(stream)
     if validator is not None:
@@ -17,11 +29,22 @@ def decode_xml(stream, validator=None):
     if not v or v != "2.0":
         raise ValueError("Only OpenMath 2.0 is supported")
 
-    return decode_om(root)
-    
-def decode_om(elem):
+    return decode_xml(root)
+
+def decode_xml(elem, _in_bind = False):
+    """ Decodes an XML element into an OpenMath object.
+
+    :param elem: Element to decode.
+    :type elem: etree._Element
+
+    :param _in_bind: Internal flag used to indicate if we should decode within
+    an OMBind.
+    :type _in_bind: bool
+
+    :rtype: OMAny
     """
-    """
+
+    # TODO: Why are we using issubclass instead of isinstance?
     
     obj = xml.tag_to_object(elem.tag)
     attrs = {}
@@ -38,7 +61,7 @@ def decode_om(elem):
     # Root Object
     if issubclass(obj, om.OMObject):
         a2d("version")
-        attrs["omel"] = decode_om(elem[0])
+        attrs["omel"] = decode_xml(elem[0])
 
     # Reference Objects
     elif issubclass(obj, om.OMReference):
@@ -46,13 +69,14 @@ def decode_om(elem):
 
     # Basic Objects
     elif issubclass(obj, om.OMInteger):
-        attrs["integer"] = elem.text
+        attrs["integer"] = int(elem.text)
     elif issubclass(obj, om.OMFloat):
-        attrs["float"] = elem.get('dec')
+        # TODO: Support Hex
+        attrs["double"] = float(elem.get('dec'))
     elif issubclass(obj, om.OMString):
         attrs["string"] = elem.text
     elif issubclass(obj, om.OMBytes):
-        attr["bytes"] = base64.b64decode(elem.text)
+        attrs["bytes"] = base64.b64decode(elem.text)
     elif issubclass(obj, om.OMSymbol):
         a2d("name", "cd")
     elif issubclass(obj, om.OMVariable):
@@ -65,31 +89,35 @@ def decode_om(elem):
 
     # Compound Elements
     elif issubclass(obj, om.OMApplication):
-        attrs["elem"] = decode_om(elem[0])
-        attrs["arguments"] = list(map(decode_om, elem[1:]))
+        attrs["elem"] = decode_xml(elem[0])
+        attrs["arguments"] = list(map(decode_xml, elem[1:]))
     elif issubclass(obj, om.OMAttribution):
-        attrs["pairs"] = decode_om(elem[0])
-        attrs["obj"] = decode_om(elem[1])
+        attrs["pairs"] = decode_xml(elem[0])
+        attrs["obj"] = decode_xml(elem[1])
     elif issubclass(obj, om.OMAttributionPairs):
-        attrs["pairs"] = [(decode_om(k), decode_om(v)) for k, v in zip(elem[::2], elem[1::2])]
+        if not _in_bind:
+            attrs["pairs"] = [(decode_xml(k), decode_xml(v)) for k, v in zip(elem[::2], elem[1::2])]
+        else:
+            obj = om.OMAttVar
+            attrs["pairs"] = decode_xml(elem[0], True)
+            attrs["obj"] = decode_xml(elem[1], True)
     elif issubclass(obj, om.OMBinding):
-        attrs["binder"] = decode_om(elem[0])
-        attrs["vars"] = decode_om(elem[1])
-        attrs["obj"] = decode_om(elem[2])
+        attrs["binder"] = decode_xml(elem[0])
+        attrs["vars"] = decode_xml(elem[1])
+        attrs["obj"] = decode_xml(elem[2])
     elif issubclass(obj, om.OMBindVariables):
-        attrs["vars"] = map(decode_om, elem[:])
-    elif issubclass(obj, om.OMAttVar):
-        attrs["pairs"] = decode_om(elem[0])
-        attrs["obj"] = decode_om(elem[1])
+        attrs["vars"] = list(map(lambda x:decode_xml(x, True), elem[:]))
     elif issubclass(obj, om.OMError):
-        attrs["name"] = decode_om(elem[0])
-        attrs["params"] = map(decode_om, elem[1:])
+        attrs["name"] = decode_xml(elem[0])
+        attrs["params"] = list(map(decode_xml, elem[1:]))
         
     else:
         raise TypeError("Expected OMAny, found %s." % obj.__name__)
 
-    print (obj.__name__)
     return obj(**attrs)
+
+def decode_xml_binding():
+    pass
 
 def normative_validator():
     """ Load the normative validator provided by the OpenMath foundation. """
