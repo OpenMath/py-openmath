@@ -19,7 +19,8 @@ omtags = {
     "OMBVAR": om.OMBindVariables,
     "OME": om.OMError
     }
-inv_omtags = {(v,k) for k,v in omtags.items()}
+
+inv_omtags = dict((v,k) for k,v in omtags.items())
     
 def tag_to_object(tag, ns=True):
     if ns and not tag.startswith('{%s}' % openmath_ns):
