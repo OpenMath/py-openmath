@@ -2,7 +2,8 @@
 
 from lxml import etree
 from pkg_resources import resource_filename
-from openmath import openmath as om, xml
+from openmath import openmath as om
+from openmath import xml
 import base64
 
 
