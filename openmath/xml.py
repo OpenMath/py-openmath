@@ -1,4 +1,4 @@
-from openmath import openmath as om
+from . import openmath as om
 
 openmath_ns = "http://www.openmath.org/OpenMath"
 

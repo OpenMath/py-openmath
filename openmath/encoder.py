@@ -3,8 +3,8 @@ import base64
 
 from lxml import etree
 
-from openmath import openmath as om
-from openmath import xml
+from . import openmath as om
+from . import xml
 
 # Setup the OpenMath Namespace
 # TODO: Find a better way to make the namespace.
