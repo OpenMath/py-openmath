@@ -131,9 +131,7 @@ def encode_xml(obj):
         attr[""] = obj.string
     elif isinstance(obj, om.OMBytes):
         name = "OMB"
-        pybytes = bytes(''.join([chr(b) for b in obj.bytes]), 'utf-8')
-
-        attr[""] = base64.b64encode(pybytes)
+        attr[""] = base64.b64encode(obj.bytes).decode('ascii')
     elif isinstance(obj, om.OMSymbol):
         name = "OMS"
         attr["name"] = obj.name

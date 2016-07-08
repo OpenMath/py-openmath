@@ -64,10 +64,10 @@ object_examples = [
         OMString('test'),
         '<om:OMSTR xmlns:om="http://www.openmath.org/OpenMath">test</om:OMSTR>'
     ),
-#    (
-#        OMBytes([0x13]),
-#        '<om:OMB xmlns:om="http://www.openmath.org/OpenMath">b\'Ew==\'</om:OMB>'
-#    ),
+    (
+        OMBytes(b'\x13'),
+        '<om:OMB xmlns:om="http://www.openmath.org/OpenMath">Ew==</om:OMB>'
+    ),
     (
         OMSymbol('hello', 'world', None, None),
         '<om:OMS xmlns:om="http://www.openmath.org/OpenMath" name="hello" cd="world"/>',
