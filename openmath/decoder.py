@@ -77,7 +77,10 @@ def decode_xml(elem, _in_bind = False):
     elif issubclass(obj, om.OMString):
         attrs["string"] = elem.text
     elif issubclass(obj, om.OMBytes):
-        attrs["bytes"] = base64.b64decode(elem.text)
+        try:
+            attrs["bytes"] = base64.b64decode(elem.text)
+        except TypeError:
+            attrs["bytes"] = base64.b64decode(bytes(elem.text, "ascii"))
     elif issubclass(obj, om.OMSymbol):
         a2d("name", "cd")
     elif issubclass(obj, om.OMVariable):
