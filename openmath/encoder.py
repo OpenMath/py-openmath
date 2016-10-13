@@ -186,13 +186,13 @@ def encode_xml(obj):
     return _make_element(_om(name), *children, **attr)
 
 
-def encode_stream(obj):
+def encode_bytes(obj):
     """ Encodes an OpenMath element into a string.
 
     :param obj: Object to encode as string.
     :type obj: OMAny
 
-    :rtype: str
+    :rtype: bytes
     """
 
     node = encode_xml(obj)

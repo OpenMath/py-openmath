@@ -5,8 +5,20 @@ from pkg_resources import resource_filename
 from . import openmath as om
 from . import xml
 import base64
+import io
 
+def decode_bytes(xml, validator=None):
+    """ Decodes a stream into an OpenMath object.
 
+    :param xml: XML to decode.
+    :type xml: bytes
+
+    :param validator: Validator to use.
+
+    :rtype: OMAny
+    """
+    return decode_stream(io.BytesIO(xml), validator)
+    
 def decode_stream(stream, validator=None):
     """ Decodes a stream into an OpenMath object.
 
