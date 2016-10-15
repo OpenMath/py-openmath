@@ -1,1 +1,1 @@
-__all__ = ["openmath", "encoder", "decoder", "xml"]
+__all__ = ["openmath", "encoder", "decoder", "xml", "convert"]
