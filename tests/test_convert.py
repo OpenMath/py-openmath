@@ -13,7 +13,7 @@ class TestConvert(unittest.TestCase):
             complex(1,0), complex(0,1), complex(0,0), complex(1,1),
             "", "test",
             [], [1,2,3],
-            set(), {1,2,3},
+            set(), set([1,2,3]),
         ]
         for obj in testcases:
             self.assertEqual(obj, to_python(to_openmath(obj)),
