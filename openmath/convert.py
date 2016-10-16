@@ -34,7 +34,9 @@ def to_python(omobj):
     
 def to_openmath(obj):
     """ Convert Python object to OpenMath """
-    if isinstance(obj, six.integer_types):
+    if isinstance(obj, bool):
+        return om.OMSymbol(str(obj).lower(), cd='logic1')
+    elif isinstance(obj, six.integer_types):
         return om.OMInteger(obj)
     elif isinstance(obj, float):
         if obj == float('inf'):
@@ -48,8 +50,6 @@ def to_openmath(obj):
         return om.OMString(obj)
     elif isinstance(obj, bytes):
         return om.OMBytes(obj)
-    elif isinstance(obj, bool):
-        return om.OMSymbol(str(obj).lower(), cd='logic1')
     elif isinstance(obj, list):
         return om.OMApplication(om.OMSymbol('list', cd='list1'), map(to_openmath, obj))
     elif isinstance(obj, set):

@@ -16,7 +16,8 @@ class TestConvert(unittest.TestCase):
             set(), set([1,2,3]),
         ]
         for obj in testcases:
-            self.assertEqual(obj, to_python(to_openmath(obj)),
-                                 "Converting %s" % obj.__class__.__name__)
+            conv = to_python(to_openmath(obj))
+            self.assertEqual(type(obj), type(conv), "Converting %s" % obj.__class__.__name__)
+            self.assertEqual(obj, conv, "Converting %s" % obj.__class__.__name__)
         with self.assertRaises(ValueError, msg="Converting dict"):
             to_openmath({})
