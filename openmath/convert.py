@@ -1,5 +1,6 @@
 """ Mapping of native Python types to OpenMath """
 
+import six
 from . import openmath as om
 
 def to_python(omobj):
@@ -33,7 +34,7 @@ def to_python(omobj):
     
 def to_openmath(obj):
     """ Convert Python object to OpenMath """
-    if isinstance(obj, int):
+    if isinstance(obj, six.integer_types):
         return om.OMInteger(obj)
     elif isinstance(obj, float):
         if obj == float('inf'):

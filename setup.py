@@ -16,5 +16,5 @@ setup(
     ],
     keywords='openmath',
     packages=find_packages(),
-    install_requires=['lxml', 'case_class'],
+    install_requires=['lxml', 'case_class', 'six'],
 )
