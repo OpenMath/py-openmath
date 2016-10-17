@@ -19,5 +19,4 @@ class TestConvert(unittest.TestCase):
             conv = to_python(to_openmath(obj))
             self.assertEqual(type(obj), type(conv), "Converting %s" % obj.__class__.__name__)
             self.assertEqual(obj, conv, "Converting %s" % obj.__class__.__name__)
-        with self.assertRaises(ValueError, msg="Converting dict"):
-            to_openmath({})
+            self.assertRaises(ValueError, to_openmath, {})
