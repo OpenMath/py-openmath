@@ -29,8 +29,8 @@ def to_python(omobj):
             return [to_python(x) for x in omobj.arguments]
         elif omobj.elem.name == 'set':
             return set(to_python(x) for x in omobj.arguments)
-    else:
-        raise ValueError('Cannot convert %s to Python.' % str(omobj))
+
+    raise ValueError('Cannot convert %s to Python.' % str(omobj))
     
 def to_openmath(obj):
     """ Convert Python object to OpenMath """
@@ -57,5 +57,5 @@ def to_openmath(obj):
             return om.OMApplication(om.OMSymbol('set', cd='set1'), map(to_openmath, obj))
         else:
             return om.OMSymbol('emptyset', cd='set1')
-    else:
-        raise ValueError('Cannot convert %s to OpenMath.' % str(obj))
+
+    raise ValueError('Cannot convert %s to OpenMath.' % str(obj))
