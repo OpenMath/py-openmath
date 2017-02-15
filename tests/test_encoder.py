@@ -16,7 +16,8 @@ class TestEncoder(unittest.TestCase):
         with open(os.path.join(os.path.dirname(__file__), 'example.om')) as f:
             xmlnode = etree.fromstring(f.read())
 
-        encoded = encode_xml(expected)
+        encoded = encode_xml(expected, 'om')
+        print(etree.tostring(encoded, pretty_print=True).decode())
 
         # and check that they are as expected
         self.assertTrue(elements_equal(encoded, xmlnode), "Encoding an OpenMath object")

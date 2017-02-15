@@ -29,4 +29,4 @@ def tag_to_object(tag, ns=True):
 
 def object_to_tag(obj, ns=True):
     tpl = '{%(ns)s}%(tag)s' if ns else '%(tag)s'
-    return tpl % { "ns": openmath_ns, "tag": inv_omtags(obj) }
+    return tpl % { "ns": openmath_ns, "tag": inv_omtags[obj.__class__] }
