@@ -57,9 +57,7 @@ def decode_xml(elem, _in_bind = False):
     :rtype: OMAny
     """
 
-    # TODO: Why are we using issubclass instead of isinstance?
-    
-    obj = xml.tag_to_object(elem.tag)
+    obj = xml.tag_to_object(elem)
     attrs = {}
     
     def a2d(*props):

@@ -1,4 +1,5 @@
 from . import openmath as om
+from lxml.etree import QName
 
 openmath_ns = "http://www.openmath.org/OpenMath"
 
@@ -22,10 +23,11 @@ omtags = {
 
 inv_omtags = dict((v,k) for k,v in omtags.items())
     
-def tag_to_object(tag, ns=True):
-    if ns and not tag.startswith('{%s}' % openmath_ns):
+def tag_to_object(tag, check_ns=False):
+    q = QName(tag)
+    if check_ns and q.namespace != openmath_ns:
         raise ValueError('Invalid namespace')
-    return omtags[tag.split('}')[-1]]
+    return omtags[q.localname]
 
 def object_to_tag(obj, ns=True):
     tpl = '{%(ns)s}%(tag)s' if ns else '%(tag)s'
