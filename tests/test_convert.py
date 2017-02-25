@@ -60,5 +60,5 @@ class TestConvert(unittest.TestCase):
         register(Fraction, to_om_rat, 'nums1', 'rational', to_py_rat)
 
         a = Fraction(10, 12)
-        self.assertEqual(a, to_openmath(to_python(b)))
+        self.assertEqual(a, to_python(to_openmath(a)))
 
