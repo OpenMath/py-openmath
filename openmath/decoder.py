@@ -7,7 +7,7 @@ from . import xml
 import base64
 import io
 
-def decode_bytes(xml, validator=None):
+def decode_bytes(xml, validator=None, snippet=False):
     """ Decodes a stream into an OpenMath object.
 
     :param xml: XML to decode.
@@ -15,17 +15,23 @@ def decode_bytes(xml, validator=None):
 
     :param validator: Validator to use.
 
+    :param snippet: Is this an OpenMath snippet, or a full object?
+    :type snippet: Bool
+
     :rtype: OMAny
     """
-    return decode_stream(io.BytesIO(xml), validator)
+    return decode_stream(io.BytesIO(xml), validator, snippet)
     
-def decode_stream(stream, validator=None):
+def decode_stream(stream, validator=None, snippet=False):
     """ Decodes a stream into an OpenMath object.
 
     :param stream: Stream to decode.
     :type stream: Any
 
     :param validator: Validator to use.
+
+    :param snippet: Is this an OpenMath snippet, or a full object?
+    :type snippet: Bool
 
     :rtype: OMAny
     """
@@ -39,7 +45,7 @@ def decode_stream(stream, validator=None):
 
     root = tree.getroot()
     v = root.get("version")
-    if not v or v != "2.0":
+    if not snippet and (not v or v != "2.0"):
         raise ValueError("Only OpenMath 2.0 is supported")
 
     return decode_xml(root)
