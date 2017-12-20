@@ -1,6 +1,6 @@
 """ Contains a Data-structure for OpenMath and related objects. """
 from collections import namedtuple as nt
-from itertools import zip_longest
+from six.moves import zip_longest
 from six import add_metaclass
 
 class _OMMeta(type):
