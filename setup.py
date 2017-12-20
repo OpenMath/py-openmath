@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='openmath',
-    version='0.1.1',
+    version='0.2.0',
     description='Object implementation of the OpenMath standard',
     url='https://github.com/OpenMath/py-openmath',
     author='Luca De Feo, Tom Wiesing',
