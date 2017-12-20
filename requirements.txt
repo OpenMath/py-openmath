@@ -1,3 +1,2 @@
 lxml==3.6.0
-case_class==0.0.7
 six==1.10.0
