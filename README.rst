@@ -1,7 +1,7 @@
 pyopenmath
 ==========
 
-|Build Status|
+|Build Status| |Pypi|
 
 Python `OpenMath
 2.0 <http://www.openmath.org/standard/om20-2004-06-30/>`__
@@ -109,3 +109,6 @@ file.
 
 .. |Build Status| image:: https://travis-ci.org/OpenMath/py-openmath.svg?branch=master
    :target: https://travis-ci.org/OpenMath/py-openmath
+.. |Pypi| image:: https://badge.fury.io/py/openmath.svg
+    :target: https://badge.fury.io/py/openmath
+   
