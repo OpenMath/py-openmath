@@ -54,8 +54,24 @@ special exception ``CannotConvertError`` can be used to signify that
 exception stops conversion immediately.  Converters registered this way
 are called in order from the most recent to the oldest.
 
-Finally, the function ``register()`` may be used as a shortcut for the
-two previous functions.
+Finally, the method ``c.register()`` may be used as a shortcut for the
+two previous methods.
+
+Examples::
+
+    >>> from openmath.convert import DefaultConverter
+    >>> o = DefaultConverter.to_openmath(1); o
+    OMInteger(integer=1, id=None)
+    >>> DefaultConverter.to_python(o)
+    1
+
+For backward compatibility, one may use the following shorthands:
+
+    >>> from openmath.convert import to_openmath, to_python, register_to_openmath, register_to_python
+    >>> o = to_openmath(1); o
+    OMInteger(integer=1, id=None)
+    >>> to_python(o)
+    1
 """
 
 import six
@@ -241,6 +257,11 @@ class Converter(object):
 
 # A default converter instance for convenience
 DefaultConverter = Converter()
+# Shorthands for bacwkard compatibility (and convenience?)
+to_python = DefaultConverter.to_python
+to_openmath = DefaultConverter.to_openmath
+register_to_openmath = DefaultConverter.register_to_openmath
+register_to_python = DefaultConverter.register_to_python
 
 class CannotConvertError(RuntimeError):
     """
