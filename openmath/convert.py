@@ -1,15 +1,15 @@
 """
 Mapping of native Python types to OpenMath
 
-This modules implements conversions from Python objects to OpenMath and
-back. All state is encapsulated in a class called ``Converter``. For
-convenience, a default instance ``DefaultConverter`` is provided.
+This module implements conversions from Python objects to OpenMath and
+back. All state is encapsulated in instances of the class ``Converter``.
+For convenience, a default instance ``DefaultConverter`` is provided.
 
-The two main functions are ``to_python()`` and ``to_openmath()``,
+The two main methods are ``to_python()`` and ``to_openmath()``,
 which do the conversion as the name suggests, or raise a ``ValueError``
 if no conversion is known.
 
-By default, a Converter class only implements conversions for basic Python
+By default, a converter ``c`` only implements conversions for basic Python
 types:
 
 - bools,
@@ -24,15 +24,15 @@ types:
 Furthermore, any object that defines an ``__openmath__(self)`` method
 will get that method called by ``to_python``.
 
-Finally, the class contains a mechanism for registering converters.
+Finally, the class contains a mechanism for registering additional conversions.
 
-The function ``register_to_python()`` takes either two or three inputs.
-The form ``register_to_python(om_class, conv)`` expects a subclass of
+The method ``c.register_to_python`` takes either two or three inputs.
+The form ``c.register_to_python(om_class, conv)`` expects a subclass of
 ``openmath.OMAny`` as first parameter, and a function as second
 parameter. Any object of type ``om_class`` will be passed to ``conv()``,
 and the result will be returned.
 
-The form ``register_to_python(cd, name, conv)`` expects two strings for
+The form ``c.register_to_python(cd, name, conv)`` expects two strings for
 the arguments ``cd`` and ``name``, and any object for the third
 argument. Any object of type ``openmath.OMSymbol``, with content
 dictionary equal to ``cd`` and name equal to ``name`` will be converted
@@ -41,7 +41,7 @@ whose first child is an ``openmath.OMSymbol`` as above will be converted
 using ``conv``. If ``conv`` is a function, it will be called with the
 OpenMath object as parameter; otherwise ``conv`` will be returned.
 
-The function ``register_to_openmath(py_class, conv)`` takes two
+The method ``c.register_to_openmath(py_class, conv)`` takes two
 parameters, the first being None, or a Python class, the second being a
 function or an OpenMath object. ``conv`` is used to convert any object
 of type ``py_class``, or any object if ``py_class`` is ``None``. If
@@ -80,10 +80,10 @@ from . import openmath as om
 
 class Converter(object):
     """
-    A class implementing conversion between native Python and OpenMath objects
+    A class implementing conversions between native Python and OpenMath objects
     """
     def __init__(self):
-        # A list of converters from python types to OM
+        # A list of conversions from python types to OM
         self._conv_to_om = []
 
         # A dictionary to override OM basic tags
@@ -170,9 +170,9 @@ class Converter(object):
         raise ValueError('Cannot convert %r to OpenMath.' % obj)
 
     def register_to_openmath(self, py_class, converter):
-        """Register a converter from Python to OpenMath
+        """Register a conversion from Python to OpenMath
 
-        :param py_class: A Python class the converter is attached to, or None
+        :param py_class: A Python class the conversion is attached to, or None
         :type py_class: None, type
 
         :param converter: A conversion function or an OpenMath object
@@ -200,7 +200,7 @@ class Converter(object):
         self._conv_to_om.append((py_class, converter))
 
     def register_to_python(self, cd, name, converter=None):
-        """Register a converter from OpenMath to Python
+        """Register a conversion from OpenMath to Python
 
         This function has two forms. A three-arguments one:
 
