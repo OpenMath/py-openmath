@@ -6,5 +6,4 @@ python:
   - "3.5"
   - "3.6-dev"
   - "3.6"
-  - "nightly"
 script: nosetests
