@@ -257,9 +257,10 @@ class Converter(object):
 
 # A default converter instance for convenience
 DefaultConverter = Converter()
-# Shorthands for bacwkard compatibility (and convenience?)
+# Shorthands for backward compatibility (and convenience?)
 to_python = DefaultConverter.to_python
 to_openmath = DefaultConverter.to_openmath
+register = DefaultConverter.register
 register_to_openmath = DefaultConverter.register_to_openmath
 register_to_python = DefaultConverter.register_to_python
 
