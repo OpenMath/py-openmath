@@ -51,11 +51,14 @@ Conversions between Python and OpenMath
 =======================================
 
 This package provides facilities for easy conversions from Python to
-OpenMath and back. The module ``convert`` contains two functions,
-``to_python()`` and ``to_openmath()``, that do the conversion as their
-names suggest, or raise a ``ValueError`` if no conversion is known.
+OpenMath and back. The module ``convert`` contains a ``Converter`` class, which
+is used to implements this functionality. For convenienve, an instance of this
+class, ``DefaultConverter`` is provided.
 
-This module only implements conversions for basic Python types:
+The two functions ``to_python()`` and ``to_openmath()`` do the conversion as
+their  names suggest, or raise a ``ValueError`` if no conversion is known.
+
+By default, a ``Converter`` only implements conversions for basic Python types:
 
 - bools,
 - ints,
@@ -69,23 +72,24 @@ This module only implements conversions for basic Python types:
 Furthermore, any object that defines an ``__openmath__(self)`` method
 will have that method called by ``to_python``.
 
-Finally, this module contains a mechanism for registering converters.
+Finally, this class contains a mechanism for registering converters.
 
 ::
 
    >>> from fractions import Fraction
-   >>> from openmath import convert, openmath as om
+   >>> from openmath import openmath as om
+   >>> from openmath.convert import DefaultConverter as converter
    >>> def to_om_rat(obj):
    ...     return om.OMApplication(om.OMSymbol('rational', cd='nums1'),
-   ...                             list(map(convert.to_openmath, [obj.numerator, obj.denominator])))
+   ...                             list(map(converter.to_openmath, [obj.numerator, obj.denominator])))
    ...
    >>> def to_py_rat(obj):
-   ...     return Fraction(convert.to_python(obj.arguments[0]), convert.to_python(obj.arguments[1]))
+   ...     return Fraction(converter.to_python(obj.arguments[0]), converter.to_python(obj.arguments[1]))
    ...
-   >>> convert.register(Fraction, to_om_rat, 'nums1', 'rational', to_py_rat)
-   >>> omobj = convert.to_openmath(Fraction(5, 6)); omobj
+   >>> converter.register(Fraction, to_om_rat, 'nums1', 'rational', to_py_rat)
+   >>> omobj = converter.to_openmath(Fraction(5, 6)); omobj
    OMApplication(OMSymbol('rational', 'nums1', id=None, cdbase=None), [OMInteger(5, id=None), OMInteger(6, id=None)], id=None, cdbase=None)
-   >>> convert.to_python(omobj)
+   >>> converter.to_python(omobj)
    Fraction(5, 6)
 
 
