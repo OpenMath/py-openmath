@@ -128,7 +128,7 @@ class Converter(object):
                     continue
 
         if hasattr(obj, '__openmath__'):
-            return obj.__openmath__(self)
+            return obj.__openmath__()
 
         raise ValueError('Cannot convert %r to OpenMath.' % obj)
 
@@ -245,11 +245,11 @@ class BasicPythonConverter(Converter):
         r('logic1', 'true', True)
         r('logic1', 'false', False)
         r('set1', 'emptyset', set())
-        r('set1', 'set', set)
+        r('set1', 'set', lambda *args: set(args))
         r('list1', 'list', lambda *args: list(args))
         r('complex1', 'complex_cartesian', complex) # this does not work if the arguments are not numbers
         # literals
-        s = self._omclass_to_py
+        s = self.register_to_python_class
         s(om.OMInteger, lambda o: o.integer)
         s(om.OMFloat,   lambda o: o.double)
         s(om.OMString,  lambda o: o.string)
@@ -257,14 +257,16 @@ class BasicPythonConverter(Converter):
 
         # to OpenMath
         t = self.register_to_openmath
-        
-        def oms(n,c):
-            return om.OMSymbol(name=n, cd=c, cdbase=self._omBase)
+        def oms(name, cd):
+            return om.OMSymbol(name=name, cd=cd, cdbase=self._omBase)
 
-        t(bool, lambda b: oms(str(b).lower(), 'logic1'))
-        t(six.integer_types, lambda i: om.OMInteger(i))
-        t(str, lambda s: om.OMString(s))
+        for int_type in six.integer_types:
+            t(int_type, lambda i: om.OMInteger(i))
+        for string_type in six.string_types:
+            t(string_type, lambda s: om.OMString(s))
         t(bytes, lambda b: om.OMBytes(b))
+        # bool should be registered after int: isinstance(True, int) holds!
+        t(bool, lambda b: oms(str(b).lower(), 'logic1'))
         def do_float(f):
             if f == float('inf'):
                 return oms('infinity', 'nums1')

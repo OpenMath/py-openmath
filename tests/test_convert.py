@@ -28,22 +28,23 @@ class TestConvert(unittest.TestCase):
         def str_to_py(om):
             return om.string + 'world'
 
-        DefaultConverter.register(str, str_to_om, om.OMString, str_to_py)
+        DefaultConverter.register_to_openmath(str, str_to_om)
+        DefaultConverter.register_to_python_class(om.OMString, str_to_py)
         self.assertEqual(DefaultConverter.to_python(DefaultConverter.to_openmath(' ')), 'Hello world')
 
     def test_register_sym(self):
-        DefaultConverter.register_to_python('hello1', 'hello', 'world')
-        self.assertEqual(DefaultConverter.to_python(om.OMSymbol(cd='hello1', name='hello')), 'world')
-        def echo(obj):
-            return obj.name
-        DefaultConverter.register_to_python('echo1', 'echo', echo)
-        self.assertEqual(DefaultConverter.to_python(om.OMSymbol(cd='echo1', name='echo')), 'echo')
+        DefaultConverter.register_to_python_name('base', 'hello1', 'hello', 'world')
+        self.assertEqual(DefaultConverter.to_python(om.OMSymbol(cd='hello1', name='hello', cdbase='base')), 'world')
+        def echo(name):
+            return name
+        DefaultConverter.register_to_python_cd('base', 'echo1', echo)
+        self.assertEqual(DefaultConverter.to_python(om.OMSymbol(cd='echo1', name='echo',cdbase='base')), 'echo')
 
     def test_register_skip(self):
         def skip(obj):
             raise CannotConvertError()
         DefaultConverter.register_to_openmath(None, skip)
-        self.assertEqual(DefaultConverter.to_openmath('hello'), om.OMString('hello'))
+        self.assertEqual(DefaultConverter.to_openmath(u'hello'), om.OMString('hello'))
 
     def test_underscore(self):
         class test:
@@ -52,12 +53,14 @@ class TestConvert(unittest.TestCase):
         self.assertEqual(DefaultConverter.to_python(DefaultConverter.to_openmath(test())), 1)
 
     def test_rational(self):
+        omBase = DefaultConverter._omBase
         def to_om_rat(obj):
-            return om.OMApplication(om.OMSymbol('rational', cd='nums1'),
+            return om.OMApplication(om.OMSymbol('rational', cd='nums1', cdbase=omBase),
                                     map(DefaultConverter.to_openmath, [obj.numerator, obj.denominator]))
-        def to_py_rat(obj):
-            return Fraction(DefaultConverter.to_python(obj.arguments[0]), DefaultConverter.to_python(obj.arguments[1]))
-        DefaultConverter.register(Fraction, to_om_rat, 'nums1', 'rational', to_py_rat)
+        def to_py_rat(numerator, denominator):
+            return Fraction(numerator, denominator)
+        DefaultConverter.register_to_openmath(Fraction, to_om_rat)
+        DefaultConverter.register_to_python_name(omBase, 'nums1', 'rational', to_py_rat)
 
         a = Fraction(10, 12)
         self.assertEqual(a, DefaultConverter.to_python(DefaultConverter.to_openmath(a)))
