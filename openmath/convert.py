@@ -235,8 +235,8 @@ class BasicPythonConverter(Converter):
     # base for OM standard CDs
     _omBase = 'http://www.openmath.org/cd'
     
-    def init(self):
-        super().init(self)
+    def __init__(self):
+        super(BasicPythonConverter, self).__init__()
         # to Python
         
         # primitive operators
