@@ -2,6 +2,9 @@
 """
 A generic OpenMath exporter for Python based on the pickle protocol
 
+Note: the current implementation works only with Python 2, due to
+reliance on internals of Python's pickle that have changed in Python 3.
+
 EXAMPLES::
 
     >>> from openmath.convert_pickle import to_python, to_openmath, test_openmath
