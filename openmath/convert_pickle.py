@@ -146,7 +146,7 @@ import zlib
 from openmath import openmath as om
 from six.moves import cStringIO as StringIO
 import openmath.convert
-from sage.structure.sage_object import dumps
+from pickle import dumps
 
 def load_python_global(module, name):
     """
