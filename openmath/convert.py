@@ -207,7 +207,7 @@ class Converter(object):
         :param converter: A conversion function, or a Python object
         :type: Callable, Any
 
-		Any object of type ``openmath.OMSymbol``, with content
+        Any object of type ``openmath.OMSymbol``, with content
         dictionary equal to ``cd`` and name equal to ``name`` will be converted
         using ``converter``. Also, any object of type ``openmath.OMApplication``
         whose first child is an ``openmath.OMSymbol`` as above will be converted
