@@ -119,11 +119,11 @@ Class instances::
 
 Functions::
 
-        >>> from openmath import openmath as om
-        >>> f = om.OMSymbol(cdbase="http://python.org", cd='math', name='sin')
-        >>> o = om.OMApplication(f, [om.OMFloat(3.14)])
-        >>> to_python(o)
-        0.0015926529164868282
+    >>> from openmath import openmath as om
+    >>> f = om.OMSymbol(cdbase="http://python.org", cd='math', name='sin')
+    >>> o = om.OMApplication(f, [om.OMFloat(3.14)])
+    >>> to_python(o)
+    0.0015926529164868282
 
 Sage parents::
 
