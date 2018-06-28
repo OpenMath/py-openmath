@@ -1,42 +1,16 @@
 """
-Mapping of native Python types to OpenMath
+Conversions between Python and OpenMath objects
 
-This modules implements conversions from Python objects to OpenMath and
-back. All state is encapsulated in a class called ``Converter``.
-
-The two main functions are ``to_python()`` and ``to_openmath()``,
+This module implements conversions from Python objects to OpenMath and
+back. All state is encapsulated in instances `c` of the class ``Converter``.
+The two main methods are ``to_python()`` and ``to_openmath()``,
 which do the conversion as the name suggests, or raise a ``ValueError``
 if no conversion is known.
 
-Furthermore, any object that defines an ``__openmath__(self, converter)`` method
-will get that method called by ``to_python``.
-Here ``converter`` should be called for recursive conversions.
-
-Finally, the class contains a mechanism for registering conversions.
-
-OpenMath -> Python:
-
-``c.register_to_python_class(cls, f)`` takes a subclass ``cls`` of
-``openmath.OMAny`` and a function ``f`` such that ``f(x)`` is the conversion
-of instances ``x`` of ``cls``.
-
-Four methods are provided for the conversion of OM symbols to Python.
-``register_to_python_name(cdbase,cd,name,py)  covnerts a symbol to a Python object.
-``register_to_python_name(cdbase,cd,py) covnerts any symbol ``x`` of the given
-cd to ``py(x.name)``.
-``register_to_python_name(cdbase,py) covnerts any symbol ``x`` of the given
-cdbase to ``py(x.cd, x.name)``.
-
-Python -> OpenMath:
-
-``c.register_to_openmath(py_class, f)`` registers the conversion of all objects
-such that ``isinstance(x,py_class)`` to ``f(x)``.
-The special exception ``CannotConvertError`` can be raised by ``f`` to backtrack
-and choose the next applicable registered conversion function.
-
-The class ``BasicPythonConverter`` automatically conversions in both directions
-for basic Python types.
-For convenience, a default instance ``DefaultConverter`` is provided.
+The class ``Converter`` implements no conversion by default. The class
+``BasicPythonConverter`` implements conversions in both directions for
+basic Python types. For convenience, a default instance
+``DefaultConverter`` of the latter is provided.
 
 Examples::
 
@@ -45,6 +19,62 @@ Examples::
     OMInteger(integer=1, id=None)
     >>> DefaultConverter.to_python(o)
     1
+
+For backward compatibility, one may use the following shorthands::
+
+    >>> from openmath.convert import to_openmath, to_python
+    >>> o = to_openmath(1); o
+    OMInteger(integer=1, id=None)
+    >>> to_python(o)
+    1
+
+The ``Converter`` class contains a mechanism for registering
+additional conversions.
+
+Python to OpenMath conversions
+------------------------------
+
+The method ``c.register_to_openmath(py_class, conv)`` registers a
+conversion to OpenMath for all instances `x` of the class
+``py_class``. If ``py_class`` is ``None``, the registration is for all
+Python objects.
+
+If ``conv`` is an OpenMath object, the result of the conversion is
+that object. If ``conv`` is a callable, is it called as ``conv(x)``.
+It must either return the result of the conversion as an OpenMath
+object, or raise an exception. The special exception
+``CannotConvertError`` can be used to signify that ``conv`` does not
+know how to convert the current object, and that ``to_openmath`` shall
+continue with the other converters. Any other exception stops
+conversion immediately. Converters registered this way are called in
+order from the most recent to the oldest.
+
+Furthermore, any object ``x`` that defines an ``__openmath__``
+method will be converted to ``x.__openmath__(converter)``. Inside
+this method,``converter`` should be used for recursive conversions.
+
+OpenMath to Python conversion
+------------------------------
+
+Four methods are provided for registering additional conversions of OM
+objects to Python:
+
+- ``c.register_to_python_class(cls, f)`` registers a conversion from
+  any OpenMath object in the class ``cls`` (which should be a subclass
+  of ``openmath.OMAny``). The result of the conversion is ``f(x)``.
+
+- ``register_to_python_name(cdbase, cd, name, py)`` registers a
+  conversion for the symbol with that name, content dictionary and cd
+  base. The result of the conversion is the Python object ``py``;
+
+- ``register_to_python_cd(cdbase, cd, py)`` registers a conversion for
+  any symbol ``x`` with that content dictionary and cd base. The
+  result of the conversion is ``py(x.name)``;
+
+- ``register_to_python_cdbase(cdbase, py)`` registers a conversion for
+  any symbol ``x`` with that cd base. The result of the conversion is
+  ``py(x.cd, x.name)``.
+
 """
 
 import six
@@ -55,7 +85,7 @@ class Converter(object):
     """
     A class implementing conversions between native Python and OpenMath objects
     """
-    
+
     def __init__(self):
         # A list of converters from Python types to OM
         self._conv_to_om = []
@@ -75,7 +105,7 @@ class Converter(object):
     def register_to_python_class(self, cls, conv):
         self._omclass_to_py[cls] = conv
 
-    # registration functions for symbols  
+    # registration functions for symbols
     def register_to_python_name(self, base, cd, name, py):
         self._register_to_python(base,cd,name,lambda:py)
     def register_to_python_cd(self, base, cd, py):
@@ -85,7 +115,7 @@ class Converter(object):
     # unifies the above
     def _register_to_python(self, base, cd, name, py):
         self._oms_to_py[(base,cd,name)] = py
-    
+
     # lookup in _oms_to_py, trying from most to least specific entry
     def _lookup_to_python(self, cdbase, cd, name):
         r = self._oms_to_py.get((cdbase, cd, name))
@@ -101,8 +131,8 @@ class Converter(object):
         if r is not None:
             return r(cdbase,cd,name)
         raise ValueError("no entry found")
-        
-    
+
+
     def to_python(self, omobj):
         """ Convert OpenMath object to Python """
         # general overrides
@@ -117,7 +147,7 @@ class Converter(object):
             arguments = [self.to_python(x) for x in omobj.arguments]
             return elem(*arguments)
         raise ValueError('Cannot convert object of class %s to Python.' % omobj.__class__.__name__)
-    
+
     def to_openmath(self, obj):
         """ Convert Python object to OpenMath """
         for cl, conv in reversed(self._conv_to_om):
@@ -176,7 +206,7 @@ class Converter(object):
 
         :param converter: A conversion function, or a Python object
         :type: Callable, Any
-        
+
 		Any object of type ``openmath.OMSymbol``, with content
         dictionary equal to ``cd`` and name equal to ``name`` will be converted
         using ``converter``. Also, any object of type ``openmath.OMApplication``
@@ -211,10 +241,10 @@ class Converter(object):
     # deprecated, made private for now
     def _deprecated_register(self, py_class, to_om, om_cd, om_name, to_py=None):
         """
-        Shorthand for
+        This is a shorthand for:
 
-        >>> self.register_to_python(om_cd, om_name, to_py)
-        >>> self.register_to_openmath(py_class, to_om)
+           ``self.register_to_python(om_cd, om_name, to_py)``
+           ``self.register_to_openmath(py_class, to_om)``
         """
         self.register_to_python(om_cd, om_name, to_py)
         self.register_to_openmath(py_class, to_om)
@@ -234,13 +264,13 @@ class BasicPythonConverter(Converter):
     """
     # base for OM standard CDs
     _omBase = 'http://www.openmath.org/cd'
-    
+
     def __init__(self):
         super(BasicPythonConverter, self).__init__()
         # to Python
-        
+
         # primitive operators
-        r = lambda cd,name,py: self.register_to_python_name(self._omBase, cd, name, py) 
+        r = lambda cd,name,py: self.register_to_python_name(self._omBase, cd, name, py)
         r('nums1', 'infinity', float('inf'))
         r('logic1', 'true', True)
         r('logic1', 'false', False)
