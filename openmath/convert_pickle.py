@@ -175,9 +175,9 @@ class PickleConverter:
     def to_openmath(self, o=None, sobj=None):
         assert o is None or sobj is None
         if sobj is None:
-            sobj = dumps(o)
-        str = zlib.decompress(sobj)
-        file = StringIO(str)
+            sobj = dumps(o, protocol=2)
+        #str = zlib.decompress(sobj)
+        file = StringIO(sobj)
         # file = io.BytesIO(str) # Python3
         return OMUnpickler(file, self).load()
 
