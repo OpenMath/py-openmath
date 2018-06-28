@@ -14,7 +14,8 @@ basic Python types. For convenience, a default instance
 
 Examples::
 
-    >>> from openmath.convert import DefaultConverter
+    sage: from openmath.convert import to_openmath, to_python, DefaultConverter
+
     >>> o = DefaultConverter.to_openmath(1); o
     OMInteger(integer=1, id=None)
     >>> DefaultConverter.to_python(o)
@@ -22,7 +23,6 @@ Examples::
 
 For backward compatibility, one may use the following shorthands::
 
-    >>> from openmath.convert import to_openmath, to_python
     >>> o = to_openmath(1); o
     OMInteger(integer=1, id=None)
     >>> to_python(o)
