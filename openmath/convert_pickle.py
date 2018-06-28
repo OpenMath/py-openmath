@@ -424,7 +424,7 @@ class OMUnpickler(Unpickler):
                 key = read(1)
                 #print(dispatch[key[0]].__name__, self.stack)
                 dispatch[key](self)
-        except _Stop, stopinst:
+        except _Stop as stopinst:
             return stopinst.value
 
     dispatch = { key: Unpickler.dispatch[key]
