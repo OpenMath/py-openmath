@@ -6,4 +6,5 @@ python:
   - "3.5"
   - "3.6-dev"
   - "3.6"
-script: nosetests --with-doctest
+script: nosetests --with-doctest --doctest-options='+NORMALIZE_WHITESPACE'
+
