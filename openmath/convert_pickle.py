@@ -30,9 +30,12 @@ Strings::
     OMBytes(bytes='coucou', id=None)
     >>> to_python(_)
     'coucou'
-    >>> to_openmath(u'coucou')          # todo: not implemented
+
+Unicode strings are not yet supported
+
+    > to_openmath(u'coucou')           # doctest: +SKIP
     OMString(string='coucou', id=None)
-    >>> to_python(_)   # todo: not implemented
+    > to_python(_)                     # doctest: +SKIP
     'coucou'
 
 Integers::
@@ -107,6 +110,7 @@ Class instances::
     ...     def __eq__(self, other):
     ...         return type(self) is type(other) and self.__dict__ == other.__dict__
     >>> import __main__; __main__.A = A     # Usual trick
+    >>> openmath.convert_pickle.A = A       # Idem
     >>> a = A()
     >>> test_openmath(a)
     >>> a.foo = 1
