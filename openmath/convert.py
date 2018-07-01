@@ -321,7 +321,7 @@ to_python = DefaultConverter.to_python
 to_openmath = DefaultConverter.to_openmath
 #register = DefaultConverter.register # not used anymore
 register_to_openmath = DefaultConverter.register_to_openmath
-#register_to_python = DefaultConverter.register_to_python # not used anymore
+register_to_python_class = DefaultConverter.register_to_python_class
 
 class CannotConvertError(RuntimeError):
     """
