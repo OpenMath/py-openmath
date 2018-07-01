@@ -73,6 +73,14 @@ object_examples = [
         '<om:OMS xmlns:om="http://www.openmath.org/OpenMath" name="hello" cd="world"/>',
     ),
     (
+        OMSymbol('hello', 'world', id=34),
+        '<om:OMS xmlns:om="http://www.openmath.org/OpenMath" name="hello" cd="world" id="34"/>',
+    ),
+    (
+        OMSymbol('hello', 'world', cdbase='http://foo.org/bla'),
+        '<om:OMS xmlns:om="http://www.openmath.org/OpenMath" name="hello" cd="world" cdbase="http://foo.org/bla"/>',
+    ),
+    (
         OMVariable('x', None),
         '<om:OMV xmlns:om="http://www.openmath.org/OpenMath" name="x"/>'
     ),
