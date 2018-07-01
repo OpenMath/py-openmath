@@ -127,6 +127,8 @@ Functions::
     >>> o = om.OMApplication(f, [om.OMFloat(3.14)])
     >>> to_python(o)
     0.0015926529164868282
+    >>> import math
+    >>> test_openmath(math.sin)
 
 Sage parents::
 
