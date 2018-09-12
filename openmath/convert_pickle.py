@@ -200,8 +200,8 @@ class PickleConverter:
 
     def OMSymbol(self, module, name):
         r"""
-        Return an OM object for :obj:`None`
-
+        Helper function to build an OMS object
+        
         EXAMPLES::
 
             >>> from openmath.convert_pickle import PickleConverter
@@ -408,7 +408,7 @@ def test_openmath(l):
 class OMUnpickler(Unpickler):
     """
     An unpickler that constructs an OpenMath object whose later
-    conversion to evaluation will produce the desired Pytho object.
+    conversion to evaluation will produce the desired Python object.
 
     This can be seen as a lazy unpickler that produces an OpenMath
     object as intermediate step.
