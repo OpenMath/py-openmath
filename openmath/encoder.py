@@ -35,7 +35,7 @@ def encode_xml(obj, E=None):
     attr = {}
     children = []
 
-    if isinstance(obj, om.CDBaseAttribute) and obj.id is not None:
+    if isinstance(obj, om.CDBaseAttribute) and obj.cdbase is not None:
         attr["cdbase"] = obj.cdbase
 
     if isinstance(obj, om.CommonAttributes) and obj.id is not None:
