@@ -54,6 +54,91 @@ class OMAny(object):
     def __eq__(self, other):
         return self.__class__ == other.__class__ and self._attrs == other._attrs
 
+    def _non_default_fields(self):
+        """
+        Return the list of the names of the fields holding a non trivial value
+
+        The intention is that this would return the fields that don't
+        hold their default value.
+
+            >>> OMSymbol('+', 'arith')._fields
+            ['name', 'cd', 'id', 'cdbase']
+            >>> OMSymbol('+', 'arith')._non_default_fields()
+            ['name', 'cd']
+            >>> OMSymbol('+', 'arith', cdbase='foo')._non_default_fields()
+            ['name', 'cd', 'cdbase']
+        """
+        return [field for field in self._fields if getattr(self, field) is not None]
+
+    def _print_field(self, value, indent="", multiline=False):
+        if isinstance(value, OMAny):
+            return value.__str__(indent)
+        elif isinstance(value, list):
+            if multiline and len(value) > 1:
+                newindent = indent+"  "
+                newline = "\n" + newindent
+                separator=","+newline
+            else:
+                newindent = indent
+                newline = ""
+                separator = ", "
+            return '['+newline+separator.join(self._print_field(v, newindent) for v in value)+']'
+        elif isinstance(value, str):
+            return repr(value)
+        else:
+            return str(value)
+
+    _print_multiline = False
+
+    def __str__(self, indent=""):
+        """
+        Return a readable string representation
+
+            >>> o = OMApplication(OMSymbol('+', 'arith'), [
+            ...       OMApplication(OMSymbol('sin', 'transc1'), [OMVariable('x')]),
+            ...       OMApplication(OMSymbol('cos', 'transc1'), [OMVariable('y')])])
+            >>> print(o)
+            OMApplication(
+              elem=OMSymbol(name='+', cd='arith'),
+              arguments=[
+                OMApplication(
+                  elem=OMSymbol(name='sin', cd='transc1'),
+                  arguments=[OMVariable(name='x')]),
+                OMApplication(
+                  elem=OMSymbol(name='cos', cd='transc1'),
+                  arguments=[OMVariable(name='y')])])
+
+            >>> o = OMError(OMSymbol('DivisionByZero', 'aritherror'),
+            ...        [
+            ...            OMApplication(OMSymbol('divide', 'arith1'), [
+            ...                OMVariable('x'),
+            ...                OMInteger(0)
+            ...            ])
+            ...        ])
+            >>> print(o)
+            OMError(
+              name=OMSymbol(name='DivisionByZero', cd='aritherror'),
+              params=[OMApplication(
+                elem=OMSymbol(name='divide', cd='arith1'),
+                arguments=[
+                  OMVariable(name='x'),
+                  OMInteger(integer=0)])])
+
+        """
+        if self._print_multiline:
+            newindent = indent+"  "
+            newline = "\n"+newindent
+            separator = ",\n"+newindent
+        else:
+            newline = ""
+            separator = ", "
+            newindent = indent
+        return self.__class__.__name__+"(" + newline + \
+               separator.join("{}={}".format(field,
+                                             self._print_field(getattr(self, field), indent=newindent, multiline=self._print_multiline))
+                              for field in self._non_default_fields()) + \
+               ")"
+
 class CDBaseAttribute(OMAny):
     """ Mixin for OpenMath Objects with a cdbase attribute. """
     _fields = ['cdbase']
@@ -201,6 +286,7 @@ class OMApplication(OMCompoundElement, CompoundAttributes):
     def _clean_arguments(val):
         return list(val)
 
+    _print_multiline = True
 
 class OMAttribution(OMCompoundElement, CompoundAttributes):
     """ An OpenMath Attribution Object. """
@@ -238,7 +324,8 @@ class OMBindVariables(CommonAttributes):
 class OMError(OMCompoundElement, CompoundAttributes):
     """ An OpenMath Error. """
     _fields = ['name', 'params', 'id', 'cdbase']
-    
+    _print_multiline = True
+
     @staticmethod
     def _clean_params(val):
         return list(val)
