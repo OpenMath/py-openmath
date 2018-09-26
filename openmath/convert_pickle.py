@@ -30,7 +30,7 @@ rebuilds the same object up to equality::
 Strings::
 
     >>> to_openmath('coucou')
-    OMBytes(bytes='coucou', id=None)
+    OMString(string='coucou', id=None)
     >>> to_python(_)
     'coucou'
 
@@ -108,7 +108,7 @@ Dictionaries::
     >>> test_openmath({1:3})
 
 Class instances::
-
+    >>> import openmath.convert_pickle
     >>> class A(object):
     ...     def __eq__(self, other):
     ...         return type(self) is type(other) and self.__dict__ == other.__dict__
@@ -146,34 +146,23 @@ Sage objects::
     OMApplication(...)
     sage: test_openmath(Partition([2,1]))
 """
+
 from __future__ import absolute_import
-from pickle import Pickler, Unpickler, _Stop #, _Unframer, dumps, bytes_types,
-import io
-import pickle
 import importlib
-import zlib
-from openmath import openmath as om
-from six.moves import cStringIO as StringIO
+
 import openmath.convert
-from pickle import dumps
+from openmath import openmath as om
 
-def load_python_global(module, name):
-    """
-    Evaluate an OpenMath symbol describing a global Python object
+import zlib
 
-    EXAMPLES::
+import six
+import six.moves
 
-        >>> from openmath.convert_pickle import load_python_global, to_python
-        >>> load_python_global('math', 'sin')
-        <built-in function sin>
+import pickle
 
-        >>> from openmath import openmath as om
-        >>> o = om.OMSymbol(cdbase="http://python.org", cd='math', name='sin')
-        >>> to_python(o)
-        <built-in function sin>
-    """
-    module = importlib.import_module(module)
-    return getattr(module, name)
+##############################################################################
+# PickleConverter -- main class
+##############################################################################
 
 class PickleConverter:
     def __init__(self):
@@ -181,17 +170,16 @@ class PickleConverter:
         self._basic_converter = openmath.convert.BasicPythonConverter()
         self._basic_converter.register_to_python_cdbase(base=self._cdbase, py=load_python_global)
 
+    def to_python(self, obj):
+        return self._basic_converter.to_python(obj)
+
     def to_openmath(self, o=None, sobj=None):
         assert o is None or sobj is None
         if sobj is None:
-            sobj = dumps(o, protocol=2)
-        #str = zlib.decompress(sobj)
-        file = StringIO(sobj)
-        # file = io.BytesIO(str) # Python3
+            sobj = pickle.dumps(o, protocol=2)
+        file = six.BytesIO(sobj)
+        
         return OMUnpickler(file, self).load()
-
-    def to_python(self, obj):
-        return self._basic_converter.to_python(obj)
 
     ##############################################################################
     # Some new OpenMath constructs
@@ -217,7 +205,7 @@ class PickleConverter:
 
         EXAMPLES::
 
-            >>> from openmath.convert_pickle import PickleConverter
+            >>> from openmath.convert_pickle  import PickleConverter
             >>> converter = PickleConverter()
             >>> o = converter.OMNone(); o
             OMSymbol(name='None', cd='__builtin__', id=None, cdbase='http://python.org')
@@ -232,7 +220,7 @@ class PickleConverter:
         EXAMPLES::
 
             >>> from openmath import openmath as om
-            >>> from openmath.convert_pickle import PickleConverter
+            >>> from openmath.convert_pickle  import PickleConverter
             >>> converter = PickleConverter()
             >>> o = converter.OMList([om.OMInteger(2), om.OMInteger(2)]); o
             OMApplication(elem=OMSymbol(name='list', cd='list1', id=None, cdbase='http://www.openmath.org/cd'),
@@ -254,7 +242,7 @@ class PickleConverter:
         EXAMPLES::
 
             >>> from openmath import openmath as om
-            >>> from openmath.convert_pickle import PickleConverter
+            >>> from openmath.convert_pickle  import PickleConverter
             >>> converter = PickleConverter()
             >>> o = converter.OMTuple([om.OMInteger(2), om.OMInteger(3)]); o
             OMApplication(elem=OMSymbol(name='tuple_from_sequence', cd='openmath.convert_pickle', id=None, cdbase='http://python.org'),
@@ -274,7 +262,7 @@ class PickleConverter:
         EXAMPLES::
 
             >>> from openmath import openmath as om
-            >>> from openmath.convert_pickle import PickleConverter
+            >>> from openmath.convert_pickle  import PickleConverter
             >>> converter = PickleConverter()
             >>> a = om.OMInteger(1)
             >>> b = om.OMInteger(3)
@@ -298,30 +286,33 @@ class PickleConverter:
         return om.OMApplication(elem=self.OMSymbol(module='__builtin__',  name='dict'),
                                 arguments=[OMList(OMList(item) for item in d)])
 
+def load_python_global(module, name):
+    """
+    Evaluate an OpenMath symbol describing a global Python object
+
+    EXAMPLES::
+
+        >>> from openmath.convert_pickle import to_python
+        >>> from openmath.convert_pickle  import load_python_global
+        >>> load_python_global('math', 'sin')
+        <built-in function sin>
+
+        >>> from openmath import openmath as om
+        >>> o = om.OMSymbol(cdbase="http://python.org", cd='math', name='sin')
+        >>> to_python(o)
+        <built-in function sin>
+    """
+
+    # The builtin module has been renamed in python3
+    if module == '__builtin__' and six.PY3:
+        module = 'builtins'
+    module = importlib.import_module(module)
+    return getattr(module, name)
+
 
 ##############################################################################
-# Shorthands
+# Generic Object Constructors for loading objects
 ##############################################################################
-
-pickle_converter=PickleConverter()
-to_openmath = pickle_converter.to_openmath
-to_python = pickle_converter.to_python
-
-
-
-def OMloads(str):
-    str = zlib.decompress(str)
-    file = StringIO(str)
-    # file = io.BytesIO(str) # Python3
-    return OMUnpickler(file).load()
-
-def mydump(obj):
-    file = io.StringIO()
-    MyPickler(file, protocol=0).dump(obj)
-    return file.getvalue()
-class MyPickler(Pickler):
-    pass
-
 
 def tuple_from_sequence(*args):
     """
@@ -371,12 +362,13 @@ def cls_build(inst, state):
     slotstate = None
     if isinstance(state, tuple) and len(state) == 2:
         state, slotstate = state
+    
     if state:
         try:
             d = inst.__dict__
             try:
-                for k, v in state.iteritems():
-                    d[intern(k)] = v
+                for k, v in six.iteritems(state):
+                    d[six.moves.intern(k)] = v
             # keys in state don't have to be strings
             # don't blow up, but don't go out of our way
             except TypeError:
@@ -399,13 +391,18 @@ def cls_build(inst, state):
             setattr(inst, k, v)
     return inst
 
-def test_openmath(l):
-    o = to_openmath(l)
-    l2 = to_python(o)
-    assert l == l2
-    assert type(l) is type(l2)
+##############################################################################
+# Unpickler -- turns a pickled object into OpenMath
+##############################################################################
 
-class OMUnpickler(Unpickler):
+# check if we have the dispatch attribute on the Unpickler class
+# if not, fall back to the _Unpickler version (python3)
+if hasattr(pickle.Unpickler, 'dispatch'):
+    _Unpickler = pickle.Unpickler
+else:
+    _Unpickler = pickle._Unpickler
+
+class OMUnpickler(_Unpickler):
     """
     An unpickler that constructs an OpenMath object whose later
     conversion to evaluation will produce the desired Python object.
@@ -414,68 +411,26 @@ class OMUnpickler(Unpickler):
     object as intermediate step.
     """
     def __init__(self, file, converter):
-        Unpickler.__init__(self, file)
+        _Unpickler.__init__(self, file)
         self._converter = converter
-
-    # Only needed for print-debug purposes
-    def load(self):
-        """Read a pickled object representation from the open file.
-
-        Return the reconstituted object hierarchy specified in the file.
-        """
-        self.mark = object() # any new unique object
-        self.stack = []
-        self.append = self.stack.append
-        read = self.read
-        dispatch = self.dispatch
-        try:
-            while 1:
-                key = read(1)
-                #print(dispatch[key[0]].__name__, self.stack)
-                dispatch[key](self)
-        except _Stop as stopinst:
-            return stopinst.value
-
-    dispatch = { key: Unpickler.dispatch[key]
-                 for key in [pickle.PROTO,
-                             pickle.STOP,
-                             pickle.BINPUT, # ?
-                             pickle.BINGET, # ?
-                             pickle.MARK,   # ?
-                             pickle.TUPLE1, # are those used to produced actual tuples, or only intermediate results?
-                             pickle.TUPLE2,
-                             pickle.TUPLE3,
-                             pickle.EMPTY_TUPLE,
-                             pickle.EMPTY_DICT,
-                             pickle.NONE,
-                             pickle.TUPLE,
-                             pickle.SETITEM,
-                             pickle.SETITEMS,
-                             pickle.NEWFALSE,
-                             pickle.NEWTRUE,
-                             pickle.INT[0],
-                             pickle.BININT1[0],
-                             pickle.STRING[0],
-                             pickle.SHORT_BINSTRING,
-                             pickle.EMPTY_LIST[0],
-                             pickle.APPEND[0],
-                             pickle.APPENDS[0],
-                            ]
-               }# copy.copy(Unpickler.dispatch)
-
+    
+    # we need to do this twice to enable stuff
+    dispatch = dict(_Unpickler.dispatch)
+    
     # Finalization
     def load_stop(self):
         value = self.stack.pop()
         value = self.finalize(value)
-        raise _Stop(value)
-    dispatch[pickle.STOP] = load_stop
+        raise pickle._Stop(value)
+    dispatch[pickle.STOP] = load_stop # Python 2
+    dispatch[pickle.STOP[0]] = load_stop # Python 3
 
     def finalize(self, value):
         converter = self._converter
-        if isinstance(value, openmath.openmath.OMApplication):
+        if isinstance(value, om.OMApplication):
             for i in range(len(value.arguments)):
                 value.arguments[i] = self.finalize(value.arguments[i])
-        if isinstance(value, openmath.openmath.OMAny):
+        if isinstance(value, om.OMAny):
             return value
         elif isinstance(value, list):
             return converter.OMList([self.finalize(arg) for arg in value])
@@ -530,6 +485,33 @@ class OMUnpickler(Unpickler):
                                 (inst, state))
         self.append(obj)
     dispatch[pickle.BUILD[0]] = load_build
+
+##############################################################################
+# Shorthands
+##############################################################################
+
+pickle_converter=PickleConverter()
+to_openmath = pickle_converter.to_openmath
+to_python = pickle_converter.to_python
+
+def OMloads(str):
+    str = zlib.decompress(str)
+    file = six.BytesIO(str)
+    return OMUnpickler(file).load()
+
+def test_openmath(l):
+    """
+    Test that we can convert an object to openmath and back
+
+    EXAMPLES::
+
+        >>> from openmath.convert_pickle import test_openmath
+        >>> test_openmath([1, 2, 3])
+    """
+    o = to_openmath(l)
+    l2 = to_python(o)
+    assert l == l2
+    assert type(l) is type(l2)
 
 """
 
