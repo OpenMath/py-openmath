@@ -439,6 +439,8 @@ class OMUnpickler(_Unpickler):
         elif isinstance(value, dict):
             return converter.OMDict([(self.finalize(key), self.finalize(v))
                             for key, v in value.items()])
+        elif isinstance(value, six.string_types):
+            return om.OMString(string=value)
         elif value is None:
             return converter.OMNone()
         else:
