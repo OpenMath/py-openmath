@@ -53,7 +53,7 @@ Sage integers::
 
     sage: to_openmath(3)
     OMApplication(elem=OMSymbol(name='make_integer', cd='sage.rings.integer', id=None, cdbase='http://python.org'),
-                  arguments=[OMBytes(bytes='3', id=None)], id=None, cdbase=None)
+                  arguments=[OMString(string='3', id=None)], id=None, cdbase=None)
     sage: test_openmath(3)
 
 Sage real numbers::
