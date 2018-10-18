@@ -52,7 +52,8 @@ class OMAny(object):
         return repr(self._attrs)
 
     def __eq__(self, other):
-        return self.__class__ == other.__class__ and self._attrs == other._attrs
+        # to allow for equality between magically wrapping sub-classes
+        return issubclass(other.__class__, self.__class__) and self._attrs == other._attrs
 
     def _non_default_fields(self):
         """
@@ -138,6 +139,11 @@ class OMAny(object):
                                              self._print_field(getattr(self, field), indent=newindent, multiline=self._print_multiline))
                               for field in self._non_default_fields()) + \
                ")"
+    
+    def __call__(self, *args, **kwargs):
+        """ Create an OpenMath Application Object using this object """
+        kwargs.update({"elem": self,  'arguments': list(args)})
+        return OMApplication(**kwargs)
 
 class CDBaseAttribute(OMAny):
     """ Mixin for OpenMath Objects with a cdbase attribute. """
