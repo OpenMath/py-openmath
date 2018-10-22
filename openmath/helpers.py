@@ -119,7 +119,7 @@ from .convert import CannotConvertError
 import six
 import inspect
 
-class _Helper():
+class _Helper(object):
     """ Helper class used to indicate an object is a helper object """
     def _toOM(self):
         pass
@@ -208,7 +208,7 @@ class WrappedHelper():
     def toOM(self):
         return self.obj
 
-class OMSymbol(om.OMSymbol, _Helper):
+class OMSymbol(om.OMSymbol):
     def __init__(self, converter=None, **kwargs):
         super(OMSymbol, self).__init__(**kwargs)
         self._converter = converter
@@ -238,7 +238,7 @@ def interpretAsOpenMath(x):
     instead, it is used conveniently building OM objects in DSL embedded in Python
     inparticular, it converts Python functions into OMBinding objects using lambdaOM as the binder"""
     
-    if isinstance(x, _Helper):
+    if isinstance(x, (_Helper, OMSymbol)):
         # wrapped things in this class -> unwrap
         return x._toOM()
     
