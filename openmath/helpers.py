@@ -91,24 +91,21 @@ Content Dictionary Base::
 
     >>> openmath_org = CDBaseHelper('http://www.openmath.org')
     >>> openmath_org
-    CDBaseHelper('http://www.openmath.org')
+    CDBaseHelper('http://www.openmath.org', converter=None, cdhook=None, symbolhook=None)
     
     >>> openmath_cd = openmath_org / 'cd'
     >>> openmath_cd
-    CDBaseHelper('http://www.openmath.org/cd')
+    CDBaseHelper('http://www.openmath.org/cd', converter=None, cdhook=None, symbolhook=None)
 
 Content Dictionary::
 
     >>> logic1 = openmath_cd.logic1
     >>> logic1
-    CDHelper('http://www.openmath.org/cd', 'logic1')
+    CDHelper('http://www.openmath.org/cd', 'logic1', converter=None, symbolhoook=None)
 
     >>> logic2 = openmath_cd["logic1"]
     >>> logic2
-    CDHelper('http://www.openmath.org/cd', 'logic1')
-
-    >>> logic1 == logic2
-    True
+    CDHelper('http://www.openmath.org/cd', 'logic1', converter=None, symbolhook=None)
 
     >>> logic1.true
     OMSymbol(name='true', cd='logic1', id=None, cdbase='http://www.openmath.org/cd')
@@ -118,30 +115,37 @@ Content Dictionary::
 """
 
 from . import openmath as om
+from .convert import CannotConvertError
 import six
 import inspect
 
-class CDBaseHelper(object):
+class _Helper():
+    """ Helper class used to indicate an object is a helper object """
+    def _toOM(self):
+        pass
+
+class CDBaseHelper(_Helper):
     """ Helper object pointing to a content dictionary base """
 
-    def __init__(self, cdbase):
+    def __init__(self, cdbase, converter = None, cdhook = None, symbolhook = None):
         self._cdbase = cdbase
         self._uri = cdbase
-    
-    def __eq__(self, other):
-        return self.__class__ == other.__class__ and self._cdbase == other._cdbase
+        self._converter = converter
+
+        self._cdhook = cdhook
+        self._symbolhook = symbolhook
     
     def __repr__(self):
         """ returns a unique representation of this object """
-        return 'CDBaseHelper(%r)' % (self._cdbase)
+        return 'CDBaseHelper(%r, converter=%r, cdhook=%r, symbolhook=%r)' % (self._cdbase, self._converter, self._cdhook, self._symbolhook)
     
     def __str__(self):
         """ returns a human-readable representation of this object """ 
-        return 'CDBaseHelper(%s)' % (self._cdbase)
+        return 'CDBaseHelper(%s, converter=%s, cdook=%s, symbolhook=%s)' % (self._cdbase, self._converter, self._cdhook, self._symbolhook)
 
     def __div__(self, other):
         """ returns a new CDBaseHelper with other appended to the base url """
-        return CDBaseHelper('%s/%s' % (self._cdbase, other))
+        return CDBaseHelper('%s/%s' % (self._cdbase, other), self._converter, self._cdhook, self._symbolhook)
     
     def __truediv__(self, other):
         """ same as self.__div__ """
@@ -149,39 +153,53 @@ class CDBaseHelper(object):
 
     def __getattr__(self, name):
         """ returns a CDHelper object with the given name and this as the base """
-        
-        return CDHelper(self._cdbase, name)
+        if self._cdhook is not None:
+            return self._cdhook(self._cdbase, name, self._converter, self._symbolhook)
+        return CDHelper(self._cdbase, name, self._converter, self._symbolhook)
     
     def __getitem__(self, name):
         """ same as self.__getattr__ """
         return self.__getattr__(name)
+    
+    def _toOM(self):
+        return self.__getattr__("")._toOM()
 
-class CDHelper(object):
+class CDHelper(_Helper):
     """ Helper object pointing to a content dictionary path """
 
-    def __init__(self, cdbase, cd):
+    def __init__(self, cdbase, cd, converter=None, hook=None):
         self._cdbase = cdbase
         self._cd = cd
         self._uri = '%s?%s' % (cdbase, cd)
-    
-    def __eq__(self, other):
-        return self.__class__ == other.__class__ and self._cd == other._cd
+        self._converter = converter
+        self._hook = hook
     
     def __repr__(self):
         """ returns a unique representation of this object """
-        return 'CDHelper(%r, %r)' % (self._cdbase, self._cd)
+        return 'CDHelper(%r, %r, converter=%r, symbolhook=%r)' % (self._cdbase, self._cd, self._converter, self._hook)
     
     def __str__(self):
         """ returns a human-readable representation of this object """ 
-        return 'CDHelper(%s, %s)' % (self._cdbase, self._cd)
+        return 'CDHelper(%s, %s, converter=%s, symbolhook=%s)' % (self._cdbase, self._cd, self._converter, self._hook)
     
     def __getattr__(self, name):
         """ returns an OpenMath Symbol with self as the content dictonary and the given name """
-        return OMSymbol(name=name, cd=self._cd, cdbase=self._cdbase)
+        # if we have a hook, return whatever the hook returns instead of the symbol
+        if self._hook is not None:
+            return self._hook(name, cd, cdbase, converter)
+        
+        return OMSymbol(name=name, cd=self._cd, cdbase=self._cdbase, converter=self._converter)
     
     def __getitem__(self, name):
         """ same as self.__getattr__ """
         return self.__getattr__(name)
+    
+    def _toOM(self):
+        """ Turns this object into an OpenMath symbol """
+        return self.__getattr__("")
+    
+    def __call__(self, *args, **kwargs):
+        return self._toOM()(*args, **kwargs)
 
 class WrappedHelper():
     """mixin for classes that wrap around an OM object to provide additional functionality"""
@@ -190,17 +208,25 @@ class WrappedHelper():
     def toOM(self):
         return self.obj
 
-class OMSymbol(om.OMSymbol):
+class OMSymbol(om.OMSymbol, _Helper):
+    def __init__(self, converter=None, **kwargs):
+        super(OMSymbol, self).__init__(**kwargs)
+        self._converter = converter
+    
+    def _convert(self, term):
+        return convertAsOpenMath(term, self._converter)
+    
     def __call__(self, *args, **kwargs):
-        args = [interpretAsOpenMath(a) for a in args]
+        args = [self._convert(a) for a in args]
         return super(OMSymbol, self).__call__(*args, **kwargs)
+    
     def __eq__(self, other):
         if isinstance(other, OMSymbol):
             return self.toOM() == other.toOM()
         else:
             return self.toOM() == other
-
-    def toOM(self):
+    
+    def _toOM(self):
         return om.OMSymbol(name=self.name, cd=self.cd, id=self.id, cdbase=self.cdbase)
 
 
@@ -212,9 +238,9 @@ def interpretAsOpenMath(x):
     instead, it is used conveniently building OM objects in DSL embedded in Python
     inparticular, it converts Python functions into OMBinding objects using lambdaOM as the binder"""
     
-    if isinstance(x, OMSymbol):
-        # wrapped OMSymbol -> unwrap
-        return x.toOM()
+    if isinstance(x, _Helper):
+        # wrapped things in this class -> unwrap
+        return x._toOM()
     
     elif isinstance(x, om.OMAny):
         # already OM
@@ -258,9 +284,29 @@ def interpretAsOpenMath(x):
         # fail
         raise CannotInterpretAsOpenMath("unknown kind of object: " + str(x))
 
-class CannotInterpretAsOpenMath(Exception):
+def convertAsOpenMath(term, converter):
+    """ Converts a term into OpenMath, using either a converter or the interpretAsOpenMath method """
+    
+    # if we already have openmath, or have some of our magic helpers, use interpretAsOpenMath
+    if isinstance(term, (_Helper, om.OMAny)):
+        return interpretAsOpenMath(term)
+        
+    # next try to convert using the converter
+    if converter is not None:
+        try:
+            _converted = converter.to_openmath(term)
+        except CannotConvertError:
+            _converted = None
+        
+        if isinstance(_converted, om.OMAny):
+            return _converted
+    
+    # fallback to the openmath helper
+    return interpretAsOpenMath(term)
+
+class CannotInterpretAsOpenMath(CannotConvertError):
     """thrown when an object can not be interpreted as OpenMath """
     pass
 
 
-__all__ = ["CDBaseHelper", "CDHelper", "WrappedHelper", "OMSymbol", "interpretAsOpenMath", "CannotInterpretAsOpenMath"]
+__all__ = ["CDBaseHelper", "CDHelper", "WrappedHelper", "OMSymbol", "interpretAsOpenMath", "convertAsOpenMath", "CannotInterpretAsOpenMath"]
