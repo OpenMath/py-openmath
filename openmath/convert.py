@@ -130,7 +130,7 @@ class Converter(object):
         r = self._oms_to_py.get((None, None, None))
         if r is not None:
             return r(cdbase,cd,name)
-        raise ValueError("no entry found")
+        raise ValueError("no entry found for " + cdbase + "?" + cd + "?" + name)
 
 
     def to_python(self, omobj):
