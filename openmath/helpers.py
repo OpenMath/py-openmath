@@ -222,9 +222,9 @@ class OMSymbol(om.OMSymbol):
     
     def __eq__(self, other):
         if isinstance(other, OMSymbol):
-            return self.toOM() == other.toOM()
+            return self._toOM() == other._toOM()
         else:
-            return self.toOM() == other
+            return self._toOM() == other
     
     def _toOM(self):
         return om.OMSymbol(name=self.name, cd=self.cd, id=self.id, cdbase=self.cdbase)
