@@ -31,4 +31,9 @@ def tag_to_object(tag, check_ns=False):
 
 def object_to_tag(obj, ns=True):
     tpl = '{%(ns)s}%(tag)s' if ns else '%(tag)s'
-    return tpl % { "ns": openmath_ns, "tag": inv_omtags[obj.__class__] }
+    # FR: I changed this to allow for other classes that extend an OMXXX class.
+    # tag = inv_omtags[obj.__class__]
+    for t,c in omtags.items():
+        if isinstance(obj, c):
+            tag = t
+    return tpl % { "ns": openmath_ns, "tag": tag }
