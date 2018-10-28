@@ -9,24 +9,6 @@ EXAMPLES::
 
     >>> from openmath.convert_pickle import to_python, to_openmath, test_openmath
 
-Constants::
-
-    >>> to_openmath(False)
-    OMSymbol(name='false', cd='logic1', id=None, cdbase='http://www.openmath.org/cd')
-
-``test_openmath`` checks that serializing to openmath and back
-rebuilds the same object up to equality::
-
-    >>> test_openmath(False)
-
-    >>> to_openmath(True)
-    OMSymbol(name='true', cd='logic1', id=None, cdbase='http://www.openmath.org/cd')
-    >>> test_openmath(True)
-
-    >>> to_openmath(None)
-    OMSymbol(name='None', cd='__builtin__', id=None, cdbase='http://python.org')
-    >>> test_openmath(None)
-
 Strings::
 
     >>> to_openmath('coucou')
@@ -52,7 +34,7 @@ Integers::
 Sage integers::
 
     sage: to_openmath(3)
-    OMApplication(elem=OMSymbol(name='make_integer', cd='sage.rings.integer', id=None, cdbase='http://python.org'),
+    OMApplication(elem=OMSymbol(name='make_integer', cd='sage.rings.integer', id=None, cdbase='http://python.org/'),
                   arguments=[OMString(string='3', id=None)], id=None, cdbase=None)
     sage: test_openmath(3)
 
@@ -76,27 +58,6 @@ But not quite yet real literals::
     <type 'sage.rings.real_mpfr.RealNumber'>
     sage: type(l)
     <type 'sage.rings.real_mpfr.RealLiteral'>
-
-Lists of integers::
-
-    >>> l = [3, 1, 2]
-    >>> to_openmath(l)
-    OMApplication(elem=OMSymbol(name='list', cd='list1', id=None, cdbase='http://www.openmath.org/cd'),
-             arguments=[OMInteger(integer=3, id=None),
-                        OMInteger(integer=1, id=None),
-                        OMInteger(integer=2, id=None)],
-             id=None, cdbase=None)
-
-Sets of integers::
-
-    >>> s = {1}
-    >>> to_openmath(s)
-    OMApplication(elem=OMSymbol(name='set', cd='__builtin__', id=None, cdbase='http://python.org'),
-             arguments=[OMApplication(elem=OMSymbol(name='list', cd='list1', id=None, cdbase='http://www.openmath.org/cd'),
-                                 arguments=[OMInteger(integer=1, id=None)],
-                                 id=None, cdbase=None)],
-             id=None, cdbase=None)
-    >>> test_openmath(s)
 
 Lists of sets of Sage integers::
 
@@ -123,7 +84,7 @@ Class instances::
 Functions::
 
     >>> from openmath import openmath as om
-    >>> f = om.OMSymbol(cdbase="http://python.org", cd='math', name='sin')
+    >>> f = om.OMSymbol(cdbase="http://python.org/", cd='math', name='sin')
     >>> o = om.OMApplication(f, [om.OMFloat(3.14)])
     >>> to_python(o)
     0.0015926529164868282
@@ -165,9 +126,13 @@ import pickle
 ##############################################################################
 
 class PickleConverter:
+    importPythonBasics = {"list": lambda *args:list(args), "tuple": lambda *args:tuple(args), "none": None, "dict": lambda *args: dict(args),
+                          "true":True, "false": False}
+
     def __init__(self):
-        self._cdbase="http://python.org"
+        self._cdbase="http://python.org/"
         self._basic_converter = openmath.convert.BasicPythonConverter()
+        self._basic_converter.register_to_python_cd(base=self._cdbase, cd="Python", py=lambda name: PickleConverter.importPythonBasics[name])
         self._basic_converter.register_to_python_cdbase(base=self._cdbase, py=load_python_global)
 
     def to_python(self, obj):
@@ -180,12 +145,12 @@ class PickleConverter:
         file = six.BytesIO(sobj)
         
         return OMUnpickler(file, self).load()
-
+   
     ##############################################################################
     # Some new OpenMath constructs
     # Those are mostly lazy versions of unpickling operations (TODO: update this comment)
     ##############################################################################
-
+    
     def OMSymbol(self, module, name):
         r"""
         Helper function to build an OMS object
@@ -195,7 +160,7 @@ class PickleConverter:
             >>> from openmath.convert_pickle import PickleConverter
             >>> converter = PickleConverter()
             >>> o = converter.OMSymbol(module="foo.bar", name="baz"); o
-            OMSymbol(name='baz', cd='foo.bar', id=None, cdbase='http://python.org')
+            OMSymbol(name='baz', cd='foo.bar', id=None, cdbase='http://python.org/')
         """
         return om.OMSymbol(cdbase=self._cdbase, cd=module, name=name)
 
@@ -208,10 +173,32 @@ class PickleConverter:
             >>> from openmath.convert_pickle  import PickleConverter
             >>> converter = PickleConverter()
             >>> o = converter.OMNone(); o
-            OMSymbol(name='None', cd='__builtin__', id=None, cdbase='http://python.org')
+            OMSymbol(name='none', cd='Python', id=None, cdbase='http://python.org/')
             >>> converter.to_python(o)
         """
-        return self.OMSymbol('__builtin__', name='None')
+        return self.OMSymbol('Python', name='none')
+
+    def OMBool(self, b):
+        r"""
+        Return an OM object for booleans
+
+        EXAMPLES::
+
+            >>> from openmath.convert_pickle  import PickleConverter
+            >>> converter = PickleConverter()
+            >>> o = converter.OMBool(True); o
+            OMSymbol(name='true', cd='Python', id=None, cdbase='http://python.org/')
+            >>> converter.to_python(o)
+            True
+            >>> o = converter.OMBool(False); o
+            OMSymbol(name='false', cd='Python', id=None, cdbase='http://python.org/')
+            >>> converter.to_python(o)
+            False
+        """
+        if b:
+            return self.OMSymbol("Python", "true")
+        else:
+            return self.OMSymbol("Python", "false")
 
     def OMList(self, l):
         """
@@ -223,7 +210,7 @@ class PickleConverter:
             >>> from openmath.convert_pickle  import PickleConverter
             >>> converter = PickleConverter()
             >>> o = converter.OMList([om.OMInteger(2), om.OMInteger(2)]); o
-            OMApplication(elem=OMSymbol(name='list', cd='list1', id=None, cdbase='http://www.openmath.org/cd'),
+            OMApplication(elem=OMSymbol(name='list', cd='Python', id=None, cdbase='http://python.org/'),
                      arguments=[OMInteger(integer=2, id=None),
                                 OMInteger(integer=2, id=None)],
                      id=None, cdbase=None)
@@ -232,12 +219,11 @@ class PickleConverter:
         """
         # Except for the conversion of operands, this duplicates the default
         # implementation of python's list conversion to openmath in py_openmath
-        return om.OMApplication(elem=om.OMSymbol(cdbase=self._basic_converter._omBase, cd='list1', name='list', ),
-                                arguments=l)
+        return om.OMApplication(elem=om.OMSymbol(cdbase=self._cdbase, cd='Python', name='list', ), arguments=l)
 
     def OMTuple(self, l):
         """
-        Convert a list of OM objects into an OM object
+        Convert a tuple of OM objects into an OM object
 
         EXAMPLES::
 
@@ -245,17 +231,15 @@ class PickleConverter:
             >>> from openmath.convert_pickle  import PickleConverter
             >>> converter = PickleConverter()
             >>> o = converter.OMTuple([om.OMInteger(2), om.OMInteger(3)]); o
-            OMApplication(elem=OMSymbol(name='tuple_from_sequence', cd='openmath.convert_pickle', id=None, cdbase='http://python.org'),
-              arguments=[OMInteger(integer=2, id=None),
-                         OMInteger(integer=3, id=None)],
-              id=None, cdbase=None)
+            OMApplication(elem=OMSymbol(name='tuple', cd='Python', id=None, cdbase='http://python.org/'),
+                     arguments=[OMInteger(integer=2, id=None), OMInteger(integer=3, id=None)], id=None, cdbase=None)
             >>> converter.to_python(o)
             (2, 3)
         """
-        return om.OMApplication(elem=self.OMSymbol(module='openmath.convert_pickle', name='tuple_from_sequence'),
+        return om.OMApplication(elem=self.OMSymbol(module='Python', name='tuple'),
                                 arguments=l)
 
-    def OMDict(self, d):
+    def OMDict(self, items):
         """
         Convert a dictionary (or list of items thereof) of OM objects into an OM object
 
@@ -266,25 +250,24 @@ class PickleConverter:
             >>> converter = PickleConverter()
             >>> a = om.OMInteger(1)
             >>> b = om.OMInteger(3)
-            >>> o = converter.OMDict([(a,b), (b,b)]); o
-            OMApplication(elem=OMSymbol(name='dict', cd='__builtin__', id=None, cdbase='http://python.org'),
-              arguments=[OMApplication(elem=OMSymbol(name='list', cd='list1', id=None, cdbase='http://www.openmath.org/cd'),
-                  arguments=[OMApplication(elem=OMSymbol(name='list', cd='list1', id=None, cdbase='http://www.openmath.org/cd'),
-                      arguments=[OMInteger(integer=1, id=None), OMInteger(integer=3, id=None)], id=None, cdbase=None),
-                    OMApplication(elem=OMSymbol(name='list', cd='list1', id=None, cdbase='http://www.openmath.org/cd'),
-                      arguments=[OMInteger(integer=3, id=None),
-                                 OMInteger(integer=3, id=None)],
-                      id=None, cdbase=None)],
-                  id=None, cdbase=None)],
-                id=None, cdbase=None)
+            >>> o = converter.OMDict([(a,b), (b,b)])
+            OMApplication(
+              elem=OMSymbol(name='dict', cd='Python', id=None, cdbase='http://python.org/'),
+              arguments=[
+                    OMApplication(
+                      elem=OMSymbol(name='tuple', cd='Python', id=None, cdbase='http://python.org/'),
+                      arguments=[OMInteger(integer=1, id=None), OMInteger(integer=3, id=None)],
+                      id=None, cdbase=None),
+                    OMApplication(
+                      elem=OMSymbol(name='tuple', cd='Python', id=None, cdbase='http://python.org/'),
+                      arguments=[OMInteger(integer=3, id=None), OMInteger(integer=3, id=None)],
+                      id=None, cdbase=None)
+               ], id=None, cdbase=None)
             >>> converter.to_python(o)
             {1: 3, 3: 3}
         """
-        if isinstance(d, dict):
-            d = d.items()
-        OMList=self.OMList
-        return om.OMApplication(elem=self.OMSymbol(module='__builtin__',  name='dict'),
-                                arguments=[OMList(OMList(item) for item in d)])
+        return om.OMApplication(elem=self.OMSymbol(module='Python', name='dict'),
+                                arguments=[self.OMTuple(item) for item in items])
 
 def load_python_global(module, name):
     """
@@ -298,7 +281,7 @@ def load_python_global(module, name):
         <built-in function sin>
 
         >>> from openmath import openmath as om
-        >>> o = om.OMSymbol(cdbase="http://python.org", cd='math', name='sin')
+        >>> o = om.OMSymbol(cdbase="http://python.org/", cd='math', name='sin')
         >>> to_python(o)
         <built-in function sin>
     """
@@ -422,7 +405,7 @@ class OMUnpickler(_Unpickler):
         value = self.stack.pop()
         value = self.finalize(value)
         raise pickle._Stop(value)
-    dispatch[pickle.STOP] = load_stop # Python 2
+    dispatch[pickle.STOP] = load_stop    # Python 2
     dispatch[pickle.STOP[0]] = load_stop # Python 3
 
     def finalize(self, value):
@@ -432,6 +415,8 @@ class OMUnpickler(_Unpickler):
                 value.arguments[i] = self.finalize(value.arguments[i])
         if isinstance(value, om.OMAny):
             return value
+        elif isinstance(value, bool):
+            return OMBool(value)
         elif isinstance(value, list):
             return converter.OMList([self.finalize(arg) for arg in value])
         elif isinstance(value, tuple):
