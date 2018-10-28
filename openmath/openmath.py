@@ -32,6 +32,10 @@ class _OMMeta(type):
                     raise TypeError("%s() missing required argument '%s'" % (cls.__name__, f))
             elif hasattr(cls, '_clean_' + f):
                 v = getattr(cls, '_clean_' + f)(v)
+            
+            # make sure that magic helpers are automatically unwrapped
+            if hasattr(v, '_ishelper') and v._ishelper:
+                v = v._toOM()
 
             values[f] = v
         return type.__call__(cls, **values)
