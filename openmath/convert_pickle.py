@@ -127,7 +127,8 @@ import pickle
 
 class PickleConverter:
     importPythonBasics = {"list": lambda *args:list(args), "tuple": lambda *args:tuple(args), "none": None, "dict": lambda *args: dict(args),
-                          "true":True, "false": False}
+                          "true":True, "false": False,
+                          "getattr": lambda x,f: getattr(x,f)}
 
     def __init__(self):
         self._cdbase="http://python.org/"
