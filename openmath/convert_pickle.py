@@ -250,19 +250,20 @@ class PickleConverter:
             >>> converter = PickleConverter()
             >>> a = om.OMInteger(1)
             >>> b = om.OMInteger(3)
-            >>> o = converter.OMDict([(a,b), (b,b)])
+            >>> o = converter.OMDict([(a,b), (b,b)]); print(o)
             OMApplication(
-              elem=OMSymbol(name='dict', cd='Python', id=None, cdbase='http://python.org/'),
+              elem=OMSymbol(name='dict', cd='Python', cdbase='http://python.org/'),
               arguments=[
-                    OMApplication(
-                      elem=OMSymbol(name='tuple', cd='Python', id=None, cdbase='http://python.org/'),
-                      arguments=[OMInteger(integer=1, id=None), OMInteger(integer=3, id=None)],
-                      id=None, cdbase=None),
-                    OMApplication(
-                      elem=OMSymbol(name='tuple', cd='Python', id=None, cdbase='http://python.org/'),
-                      arguments=[OMInteger(integer=3, id=None), OMInteger(integer=3, id=None)],
-                      id=None, cdbase=None)
-               ], id=None, cdbase=None)
+                OMApplication(
+                  elem=OMSymbol(name='tuple', cd='Python', cdbase='http://python.org/'),
+                  arguments=[
+                    OMInteger(integer=1),
+                    OMInteger(integer=3)]),
+                OMApplication(
+                  elem=OMSymbol(name='tuple', cd='Python', cdbase='http://python.org/'),
+                  arguments=[
+                    OMInteger(integer=3),
+                    OMInteger(integer=3)])])
             >>> converter.to_python(o)
             {1: 3, 3: 3}
         """

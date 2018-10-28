@@ -101,7 +101,7 @@ Content Dictionary::
 
     >>> logic1 = openmath_cd.logic1
     >>> logic1
-    CDHelper('http://www.openmath.org/cd', 'logic1', converter=None, symbolhoook=None)
+    CDHelper('http://www.openmath.org/cd', 'logic1', converter=None, symbolhook=None)
 
     >>> logic2 = openmath_cd["logic1"]
     >>> logic2
@@ -128,6 +128,7 @@ class CDBaseHelper(_Helper):
     """ Helper object pointing to a content dictionary base """
 
     def __init__(self, cdbase, converter = None, cdhook = None, symbolhook = None):
+        self._ishelper = True
         self._cdbase = cdbase
         self._uri = cdbase
         self._converter = converter
@@ -168,6 +169,7 @@ class CDHelper(_Helper):
     """ Helper object pointing to a content dictionary path """
 
     def __init__(self, cdbase, cd, converter=None, hook=None):
+        self._ishelper = True
         self._cdbase = cdbase
         self._cd = cd
         self._uri = '%s?%s' % (cdbase, cd)
@@ -218,7 +220,7 @@ class OMSymbol(om.OMSymbol):
     
     def __call__(self, *args, **kwargs):
         args = [self._convert(a) for a in args]
-        return super(OMSymbol, self).__call__(*args, **kwargs)
+        return self._toOM().__call__(*args, **kwargs)
     
     def __eq__(self, other):
         if isinstance(other, OMSymbol):
@@ -238,7 +240,7 @@ def interpretAsOpenMath(x):
     instead, it is used conveniently building OM objects in DSL embedded in Python
     inparticular, it converts Python functions into OMBinding objects using lambdaOM as the binder"""
     
-    if isinstance(x, (_Helper, OMSymbol)):
+    if hasattr(x, "_ishelper") and x._ishelper:
         # wrapped things in this class -> unwrap
         return x._toOM()
     
@@ -288,14 +290,14 @@ def convertAsOpenMath(term, converter):
     """ Converts a term into OpenMath, using either a converter or the interpretAsOpenMath method """
     
     # if we already have openmath, or have some of our magic helpers, use interpretAsOpenMath
-    if isinstance(term, (_Helper, om.OMAny)):
+    if hasattr(term, "_ishelper") and term._ishelper or isinstance(term, om.OMAny):
         return interpretAsOpenMath(term)
         
     # next try to convert using the converter
     if converter is not None:
         try:
             _converted = converter.to_openmath(term)
-        except CannotConvertError:
+        except Exception as e:
             _converted = None
         
         if isinstance(_converted, om.OMAny):
