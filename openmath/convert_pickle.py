@@ -141,10 +141,22 @@ class PickleConverter:
 
     def to_openmath(self, o=None, sobj=None):
         assert o is None or sobj is None
+
+        if o is not None:
+            try:
+                return self._basic_converter.to_openmath(o)
+            except openmath.convert.CannotConvertError:
+                pass
+            except ValueError:
+                pass
+
+
         if sobj is None:
             sobj = pickle.dumps(o, protocol=2)
         file = six.BytesIO(sobj)
         
+
+            
         return OMUnpickler(file, self).load()
    
     ##############################################################################
