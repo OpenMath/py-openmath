@@ -125,7 +125,7 @@ import pickle
 # PickleConverter -- main class
 ##############################################################################
 
-class PickleConverter:
+class PickleConverter(object):
     importPythonBasics = {"list": lambda *args:list(args), "tuple": lambda *args:tuple(args), "none": None, "dict": lambda *args: dict(args),
                           "true":True, "false": False,
                           "getattr": lambda x,f: getattr(x,f)}
