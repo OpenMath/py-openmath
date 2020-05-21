@@ -54,7 +54,7 @@ def encode_xml(obj, E=None):
     elif isinstance(obj, om.OMInteger):
         children.append(str(obj.integer))
     elif isinstance(obj, om.OMFloat):
-        attr["dec"] = obj.double
+        attr["dec"] = str(obj.double).replace("+", "")
     elif isinstance(obj, om.OMString):
         if obj.string is not None:
             children.append(str(obj.string))
