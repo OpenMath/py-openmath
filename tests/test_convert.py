@@ -15,6 +15,7 @@ class TestConvert(unittest.TestCase):
             "", "test",
             [], [1,2,3],
             set(), set([1,2,3]),
+            range(1, 12)
         ]
         for obj in testcases:
             conv = DefaultConverter.to_python(DefaultConverter.to_openmath(obj))

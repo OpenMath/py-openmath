@@ -259,6 +259,7 @@ class BasicPythonConverter(Converter):
     - complex numbers (recursively),
     - strings,
     - bytes,
+    - ranges,
     - lists (recursively),
     - sets (recursively).
     """
@@ -278,6 +279,8 @@ class BasicPythonConverter(Converter):
         r('set1', 'set', lambda *args: set(args))
         r('list1', 'list', lambda *args: list(args))
         r('complex1', 'complex_cartesian', complex) # this does not work if the arguments are not numbers
+        r('interval1', 'integer_interval', lambda x,y: range(x, y + 1, 1))
+
         # literals
         s = self.register_to_python_class
         s(om.OMInteger, lambda o: o.integer)
@@ -311,6 +314,12 @@ class BasicPythonConverter(Converter):
             else:
                 return oms('emptyset', cd='set1')
         t(set, do_set)
+        def do_range(r):
+            if r.step != 1:
+                raise ValueError('Cannot convert %r to OpenMath: Range must have a step of 1. ' % obj)
+            return om.OMApplication(oms('integer_interval', 'interval1'), [om.OMInteger(r.start), om.OMInteger(r.stop - 1)])
+        t(range, do_range)
+
 
 
 # A default converter instance for convenience

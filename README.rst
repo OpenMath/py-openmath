@@ -66,6 +66,7 @@ By default, a ``Converter`` only implements conversions for basic Python types:
 - complex numbers,
 - strings,
 - bytes,
+- ranges,
 - lists (recursively),
 - sets (recursively).
 
